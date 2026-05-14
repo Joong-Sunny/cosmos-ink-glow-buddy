@@ -180,6 +180,18 @@ export function UniverseView({
 
   const isLone = books.length === 1;
 
+  const targetVb = active
+    ? focusViewBox(active)
+    : mode === "explore"
+    ? EXPLORE_VB
+    : FULL_VB;
+  const vb = useAnimatedViewBox(targetVb);
+
+  const linesVisible = mode === "explore";
+  const lineOpacityBase = active ? 0 : 0.3;
+  const activeLineOpacity = 0.7;
+  const dimLineOpacity = 0.05;
+
   return (
     <>
       <svg
