@@ -20,12 +20,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  // mode + active filter live in ui-store so they survive in-app navigation
-  // (e.g. clicking 도감 → back, or opening RegisterModal → cancel).
+  // mode + universe selection live in ui-store so they survive in-app
+  // navigation (e.g. clicking 도감 → back, or opening RegisterModal → cancel).
   const mode = useUiStore((s) => s.homeMode);
   const setMode = useUiStore((s) => s.setHomeMode);
-  const active = useUiStore((s) => s.homeActiveKeyword);
-  const setActive = useUiStore((s) => s.setHomeActiveKeyword);
 
   // intro star brightness staging is purely visual — local state is fine
   const [introStarOpacity, setIntroStarOpacity] = useState(0.15);
@@ -60,12 +58,7 @@ function Home() {
       {mode === "explore" && <HomeHeader />}
 
       <section className="absolute inset-0">
-        <UniverseView
-          active={active}
-          onActiveChange={setActive}
-          mode={mode}
-          starOpacity={starOpacity}
-        />
+        <UniverseView mode={mode} starOpacity={starOpacity} />
       </section>
 
       {mode === "explore" && <AddStarFab />}

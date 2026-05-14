@@ -1,5 +1,35 @@
+/**
+ * UniverseView
+ * ============
+ * The home page's star map. Renders 4 visual layers on top of a single
+ * animated SVG viewport, and drives every interaction through the
+ * `selection` field in ui-store (see ui-store.ts for the model).
+ *
+ * Responsibilities (only):
+ *   1. Build the graph (stars, hubs, links, candidate branches) from books
+ *   2. Pick a viewbox based on `selection` and animate to it
+ *   3. Render the 4 layers with dim/highlight derived from `selection`
+ *   4. Translate user clicks into selection actions (selectStar /
+ *      selectKeyword / clearSelection)
+ *   5. Mount the BookSheet bound to `focusedBook`
+ *
+ * Anything NOT in this list (route navigation, modal opening, intro
+ * copy fade, FAB) belongs to the parent route, not here.
+ *
+ * Selection model recap (mirror of ui-store):
+ *   none      → all stars visible, planets visible, no halos on non-lit
+ *   keyword   → focus on hub's books, dim rest, viewbox zooms to hub
+ *   book      → focus on one star, dim rest, viewbox zooms, BookSheet open
+ *
+ * All "deselect" paths (sheet close, bg click, ESC) call clearSelection().
+ */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useUniverseStore } from "@/lib/store";
+import {
+  useUiStore,
+  homeActiveKeyword,
+  homeFocusedBookId,
+} from "@/lib/ui-store";
 import { BookSheet } from "./BookSheet";
 import {
   buildUniverseGraph,
@@ -8,23 +38,13 @@ import {
 } from "@/lib/universe-graph";
 import type { Book } from "@/lib/types";
 
-function twinkleDelay(seed: string) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return ((h % 280) / 100).toFixed(2);
-}
-
-type Props = {
-  active: string | null;
-  onActiveChange: (k: string | null) => void;
-  mode?: "intro" | "explore";
-  starOpacity?: number;
-};
-
+// ─── Layout constants ────────────────────────────────────────────────
 const W = UNIVERSE_VIEWBOX.width;
 const H = UNIVERSE_VIEWBOX.height;
-const FULL_VB: [number, number, number, number] = [0, 0, W, H];
-const EXPLORE_VB: [number, number, number, number] = [80, 50, W - 160, H - 100];
+const FULL_VB: ViewBox = [0, 0, W, H];
+const EXPLORE_VB: ViewBox = [80, 50, W - 160, H - 100];
+
+type ViewBox = [number, number, number, number];
 
 type Planet = {
   id: string;
@@ -36,64 +56,37 @@ type Planet = {
   color: string;
 };
 
-/** Top-level "planet" categories that group keyword hubs. */
+/** Top-level "planet" groups that frame the universe. Decorative only. */
 const PLANETS: Planet[] = [
-  // 성장(320,240) · 가족·우정(520,320) · 공감·다양성(240,460) · 철학(480,540)
   { id: "self", label: "나와 성장", kind: "GROWTH / IDENTITY",
     cx: 370, cy: 400, r: 300, color: "#8FB8FF" },
-  // 사회·정의(1100,280) · 역사(1280,460) · 용기·리더십(1080,600) · 경제(1240,760)
   { id: "society", label: "세상과 마주", kind: "SOCIETY / HISTORY",
     cx: 1170, cy: 520, r: 290, color: "#C9543B" },
-  // 상상력(720,160) · 예술(900,240) · 과학·자연(780,700)
   { id: "discover", label: "상상과 발견", kind: "IMAGINATION / SCIENCE",
     cx: 800, cy: 420, r: 330, color: "#E8B547" },
 ];
 
-function useAnimatedViewBox(target: [number, number, number, number]) {
-  const [vb, setVb] = useState(target);
-  const fromRef = useRef(target);
-  const key = target.join(",");
-  useEffect(() => {
-    const from = fromRef.current;
-    const to = target;
-    const start = performance.now();
-    const dur = 800;
-    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
-    let raf = 0;
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / dur);
-      const e = ease(t);
-      const next: [number, number, number, number] = [
-        from[0] + (to[0] - from[0]) * e,
-        from[1] + (to[1] - from[1]) * e,
-        from[2] + (to[2] - from[2]) * e,
-        from[3] + (to[3] - from[3]) * e,
-      ];
-      setVb(next);
-      fromRef.current = next;
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
-  return vb;
-}
+// ─── Component ───────────────────────────────────────────────────────
+type Props = {
+  mode?: "intro" | "explore";
+  starOpacity?: number;
+};
 
-export function UniverseView({
-  active,
-  onActiveChange,
-  mode = "explore",
-  starOpacity = 0.75,
-}: Props) {
+export function UniverseView({ mode = "explore", starOpacity = 0.75 }: Props) {
   const books = useUniverseStore((s) => s.books);
-  const [openBookId, setOpenBookId] = useState<string | null>(null);
-  /** focus = a star id user clicked (lights all of its keyword links) */
-  const [focusStarId, setFocusStarId] = useState<string | null>(null);
+  const selection = useUiStore((s) => s.selection);
+  const selectStar = useUiStore((s) => s.selectStar);
+  const selectKeyword = useUiStore((s) => s.selectKeyword);
+  const clearSelection = useUiStore((s) => s.clearSelection);
+
+  // Convenience derived flags
+  const activeKeyword = homeActiveKeyword({ selection });
+  const focusedBookId = homeFocusedBookId({ selection });
+  const hasSelection = selection.kind !== "none";
 
   const graph = useMemo(() => buildUniverseGraph(books), [books]);
 
-  // Most recently registered book = "today's star" (active blue)
+  // The most recently registered book gets the bright blue "today's star" look
   const currentStar = useMemo(() => {
     if (books.length === 0) return null;
     return [...books].sort((a, b) =>
@@ -101,83 +94,70 @@ export function UniverseView({
     )[0];
   }, [books]);
 
-  // Compute focus viewBox for active keyword
-  const targetVb = useMemo<[number, number, number, number]>(() => {
-    if (active) {
-      const hub = graph.hubByKeyword[active];
-      if (hub) {
-        const starIds = graph.hubStars[hub.id] ?? [];
-        const stars = starIds.map((id) => graph.starById[id]).filter(Boolean);
-        const xs = [hub.x, ...stars.map((s) => s.x)];
-        const ys = [hub.y, ...stars.map((s) => s.y)];
-        const padX = 220;
-        const padY = 180;
-        const minX = Math.min(...xs) - padX;
-        const minY = Math.min(...ys) - padY;
-        const maxX = Math.max(...xs) + padX;
-        const maxY = Math.max(...ys) + padY;
-        let w = maxX - minX;
-        let h = maxY - minY;
-        const r = W / H;
-        if (w / h > r) h = w / r;
-        else w = h * r;
-        const cx = (minX + maxX) / 2;
-        const cy = (minY + maxY) / 2;
-        return [cx - w / 2, cy - h / 2, w, h];
-      }
-    }
-    return mode === "explore" ? EXPLORE_VB : FULL_VB;
-  }, [active, graph, mode]);
-
-  const vb = useAnimatedViewBox(targetVb);
-
-  // ESC clears focus & active
+  // ESC always returns to overview
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setFocusStarId(null);
-        onActiveChange(null);
-      }
+      if (e.key === "Escape") clearSelection();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onActiveChange]);
+  }, [clearSelection]);
 
-  // What links / stars are highlighted right now?
-  // - active keyword: all links with that keyword
-  // - focus star: all links from that star
+  // Highlight sets — pure derivations from selection
   const highlightedLinkSet = useMemo(() => {
     const set = new Set<string>();
-    if (focusStarId) {
+    if (selection.kind === "book") {
       for (const l of graph.links) {
-        if (l.source === focusStarId) set.add(`${l.source}->${l.target}`);
+        if (l.source === selection.bookId) set.add(`${l.source}->${l.target}`);
       }
-    }
-    if (active) {
+    } else if (selection.kind === "keyword") {
       for (const l of graph.links) {
-        if (l.keyword === active) set.add(`${l.source}->${l.target}`);
+        if (l.keyword === selection.keyword) set.add(`${l.source}->${l.target}`);
       }
     }
     return set;
-  }, [focusStarId, active, graph]);
+  }, [selection, graph]);
 
   const highlightedStarIds = useMemo(() => {
     const set = new Set<string>();
-    if (focusStarId) set.add(focusStarId);
-    if (active) {
-      const hub = graph.hubByKeyword[active];
+    if (selection.kind === "book") set.add(selection.bookId);
+    else if (selection.kind === "keyword") {
+      const hub = graph.hubByKeyword[selection.keyword];
       if (hub) for (const id of graph.hubStars[hub.id] ?? []) set.add(id);
     }
     return set;
-  }, [focusStarId, active, graph]);
+  }, [selection, graph]);
 
-  const linesVisible = mode === "explore";
-  const hasSelection = !!focusStarId || !!active;
+  // Viewbox: overview / explore / focused-on-selection
+  const targetVb = useMemo<ViewBox>(() => {
+    if (selection.kind === "keyword") {
+      const hub = graph.hubByKeyword[selection.keyword];
+      if (hub) return fitViewBox([hub, ...starsForHub(graph, hub.id)]);
+    }
+    if (selection.kind === "book") {
+      const star = graph.starById[selection.bookId];
+      if (star) {
+        // Zoom around the star plus the hubs it connects to
+        const points = [
+          star,
+          ...graph.links
+            .filter((l) => l.source === star.id)
+            .map((l) => graph.hubByKeyword[l.keyword])
+            .filter(Boolean),
+        ];
+        return fitViewBox(points);
+      }
+    }
+    return mode === "explore" ? EXPLORE_VB : FULL_VB;
+  }, [selection, graph, mode]);
 
-  const openBook: Book | null = openBookId
-    ? books.find((b) => b.id === openBookId) ?? null
+  const vb = useAnimatedViewBox(targetVb);
+
+  const focusedBook: Book | null = focusedBookId
+    ? books.find((b) => b.id === focusedBookId) ?? null
     : null;
 
+  const linesVisible = mode === "explore";
   const isLone = books.length === 1;
 
   return (
@@ -186,10 +166,7 @@ export function UniverseView({
         viewBox={vb.join(" ")}
         className="absolute inset-0 z-10 h-full w-full"
         preserveAspectRatio="xMidYMid meet"
-        onClick={() => {
-          setFocusStarId(null);
-          onActiveChange(null);
-        }}
+        onClick={clearSelection /* clicking empty space → overview */}
       >
         <defs>
           <radialGradient id="starGlowBlue" cx="50%" cy="50%" r="50%">
@@ -209,358 +186,54 @@ export function UniverseView({
           </radialGradient>
         </defs>
 
-        {/* === Layer 0: planets (top-level categories) === */}
-        <g
-          style={{
-            opacity: linesVisible && !hasSelection ? 1 : 0,
-            transition: "opacity 900ms var(--ease-cosmos)",
-          }}
-        >
-          {PLANETS.map((p) => {
-            const cx = p.cx;
-            const cy = p.cy;
-            return (
-              <g key={p.id}>
-                <defs>
-                  <radialGradient id={`pl-${p.id}`} cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor={p.color} stopOpacity="0.10" />
-                    <stop offset="70%" stopColor={p.color} stopOpacity="0.025" />
-                    <stop offset="100%" stopColor={p.color} stopOpacity="0" />
-                  </radialGradient>
-                </defs>
-                <circle cx={cx} cy={cy} r={p.r} fill={`url(#pl-${p.id})`} />
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={p.r}
-                  fill="none"
-                  stroke={p.color}
-                  strokeOpacity={0.10}
-                  strokeDasharray="3 6"
-                />
-                <text
-                  x={cx}
-                  y={cy - p.r + 26}
-                  textAnchor="middle"
-                  fill="var(--gold-deep)"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: 20,
-                    letterSpacing: "0.02em",
-                    opacity: 0.55,
-                  }}
-                >
-                  {p.label}
-                </text>
-                <text
-                  x={cx}
-                  y={cy - p.r + 42}
-                  textAnchor="middle"
-                  fill="var(--gold-deep)"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 8.5,
-                    letterSpacing: "0.2em",
-                    opacity: 0.4,
-                  }}
-                >
-                  PLANET · {p.kind}
-                </text>
-              </g>
-            );
-          })}
-        </g>
+        {/* L0 — planets (overview decor, hidden during any selection) */}
+        <PlanetLayer hidden={!linesVisible || hasSelection} />
 
-        {/* === Layer 1: dashed open-tree candidate branches === */}
-        <g
-          style={{
-            opacity: linesVisible ? 0.55 : 0,
-            transition: "opacity 900ms var(--ease-cosmos)",
-          }}
-        >
-          {graph.candidates.map((c, i) => (
-            <g key={i} style={{ pointerEvents: "none" }}>
-              <line
-                x1={c.fromX}
-                y1={c.fromY}
-                x2={c.x}
-                y2={c.y}
-                stroke="var(--ink-muted)"
-                strokeWidth={1}
-                strokeDasharray="2 3"
-                opacity={0.6}
-              />
-              {/* Ghost ring — visually distinct from real book stars */}
-              <circle
-                cx={c.x}
-                cy={c.y}
-                r={3.2}
-                fill="none"
-                stroke="var(--ink-muted)"
-                strokeWidth={0.6}
-                strokeDasharray="1.5 2"
-                opacity={0.5}
-              />
-              <circle
-                cx={c.x}
-                cy={c.y}
-                r={0.9}
-                fill="var(--ink-muted)"
-                opacity={0.55}
-              />
-              {c.isLabel && (
-                <text
-                  x={c.x + 10}
-                  y={c.y + 4}
-                  fill="var(--ink-muted)"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 11,
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                    opacity: 0.6,
-                  }}
-                >
-                  다음 별 ?
-                </text>
-              )}
-            </g>
-          ))}
-        </g>
+        {/* L1 — dashed "next star?" candidate branches */}
+        <CandidateLayer
+          visible={linesVisible}
+          candidates={graph.candidates}
+        />
 
-        {/* === Layer 2: links (only visible when something selected) === */}
-        <g
-          style={{
-            opacity: linesVisible ? 1 : 0,
-            transition: "opacity 900ms var(--ease-cosmos)",
-          }}
-        >
-          {graph.links.map((l, i) => {
-            const star = graph.starById[l.source];
-            const hub = graph.hubByKeyword[l.keyword];
-            if (!star || !hub) return null;
-            const key = `${l.source}->${l.target}`;
-            const isOn = highlightedLinkSet.has(key);
-            const op = isOn ? 0.6 : hasSelection ? 0 : 0;
-            return (
-              <line
-                key={i}
-                x1={star.x}
-                y1={star.y}
-                x2={hub.x}
-                y2={hub.y}
-                stroke="var(--constellation)"
-                strokeWidth={isOn ? 1.3 : 1}
-                strokeOpacity={op}
-                strokeLinecap="round"
-                style={{
-                  transition:
-                    "stroke-opacity 600ms var(--ease-cosmos), stroke-width 600ms var(--ease-cosmos)",
-                }}
-              />
-            );
-          })}
-        </g>
+        {/* L2 — star ↔ hub links (only highlighted ones show) */}
+        <LinkLayer
+          graph={graph}
+          highlightedSet={highlightedLinkSet}
+          hasSelection={hasSelection}
+          visible={linesVisible}
+        />
 
-        {/* === Layer 3: keyword hubs + labels === */}
-        <g
-          style={{
-            opacity: linesVisible ? 1 : 0,
-            transition: "opacity 900ms var(--ease-cosmos)",
-          }}
-        >
-          {graph.hubs.map((h) => {
-            const isActive = active === h.keyword;
-            const dim = hasSelection && !isActive;
-            return (
-              <g
-                key={h.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setFocusStarId(null);
-                  onActiveChange(isActive ? null : h.keyword);
-                }}
-                style={{ cursor: "pointer" }}
-              >
-                <circle
-                  cx={h.x}
-                  cy={h.y}
-                  r={2}
-                  fill="var(--ink-muted)"
-                  opacity={dim ? 0.1 : 0.35}
-                />
-                {/* invisible larger hit area */}
-                <circle
-                  cx={h.x}
-                  cy={h.y}
-                  r={28}
-                  fill="transparent"
-                />
-                <text
-                  x={h.x + 12}
-                  y={h.y + 4}
-                  fill="var(--constellation)"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 13,
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    opacity: dim ? 0.18 : isActive ? 0.95 : 0.55,
-                    transition: "opacity 600ms var(--ease-cosmos)",
-                    userSelect: "none",
-                  }}
-                >
-                  #{h.keyword}
-                </text>
-              </g>
-            );
-          })}
-        </g>
+        {/* L3 — keyword hubs (clickable) */}
+        <HubLayer
+          hubs={graph.hubs}
+          activeKeyword={activeKeyword}
+          hasSelection={hasSelection}
+          visible={linesVisible}
+          onPick={selectKeyword}
+        />
 
-        {/* === Layer 4: stars === */}
-        <g
-          style={{
-            opacity: starOpacity,
-            transition: "opacity 1200ms var(--ease-cosmos)",
-          }}
-        >
-          {graph.stars.map((s) => {
-            const tier = bookCompletion(s.book);
-            const isCurrent = currentStar?.id === s.id;
-            const isHighlighted = highlightedStarIds.has(s.id);
-            const dim = hasSelection && !isHighlighted && !isCurrent;
-            const isLit = tier >= 1; // 1+ keyword answered = "read"
-
-            // Sizing — tier 0 is markedly smaller, tier 3 noticeably bigger
-            const r = isCurrent ? 5.5 : tier === 3 ? 4 : tier >= 1 ? 3 : 2;
-            // Tier 0 still gets a faint halo so users see it's a real book, not a decorative dot
-            const haloR = isCurrent ? 22 : tier === 3 ? 18 : tier >= 1 ? 11 : 6;
-
-            // Color: current = bright blue; lit = warm white; unread = faint grey
-            const fill = isCurrent
-              ? "#E8F0FF"
-              : isHighlighted
-              ? "#FFFFFF"
-              : isLit
-              ? "#F4F4ED"
-              : "#5A6B8E"; // dim grey-blue for unread
-
-            // Base opacity per state
-            const baseOp = isCurrent
-              ? 1
-              : dim
-              ? 0.12
-              : isHighlighted
-              ? 1
-              : tier === 0
-              ? 0.42
-              : tier === 3
-              ? 0.95
-              : 0.72;
-
-            const haloFill = isCurrent
-              ? "url(#starGlowBlue)"
-              : tier === 3
-              ? "url(#starGlowFull)"
-              : "url(#starGlowWhite)";
-
-            const showHalo = haloR > 0 && !dim;
-            // Cross spikes for fully-read / current — gives a real "star" silhouette
-            const spikes = (tier === 3 || isCurrent) && !dim;
-            const spikeLen = isCurrent ? 14 : 11;
-            const spikeColor = isCurrent ? "#B8D0FF" : "#F4F4ED";
-
-            // Subtle ambient shimmer for all lit stars (current uses pulse-glow instead)
-            const shimmer = isLit && !isCurrent;
-
-            return (
-              <g
-                key={s.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setFocusStarId(s.id);
-                  onActiveChange(null);
-                  setOpenBookId(s.id);
-                }}
-                style={{ cursor: "pointer" }}
-              >
-                {showHalo && (
-                  <circle
-                    cx={s.x}
-                    cy={s.y}
-                    r={haloR}
-                    fill={haloFill}
-                    className={isCurrent || tier === 3 ? "star-halo-breathe" : undefined}
-                    style={{
-                      animationDelay: isCurrent || tier === 3 ? `${twinkleDelay(s.id)}s` : undefined,
-                    }}
-                  />
-                )}
-                {spikes && (
-                  <g
-                    opacity={isCurrent ? 0.7 : 0.5}
-                    style={{ mixBlendMode: "screen" }}
-                  >
-                    <line
-                      x1={s.x - spikeLen}
-                      y1={s.y}
-                      x2={s.x + spikeLen}
-                      y2={s.y}
-                      stroke={spikeColor}
-                      strokeWidth={0.6}
-                      strokeLinecap="round"
-                    />
-                    <line
-                      x1={s.x}
-                      y1={s.y - spikeLen}
-                      x2={s.x}
-                      y2={s.y + spikeLen}
-                      stroke={spikeColor}
-                      strokeWidth={0.6}
-                      strokeLinecap="round"
-                    />
-                  </g>
-                )}
-                {/* invisible hit area */}
-                <circle cx={s.x} cy={s.y} r={14} fill="transparent" />
-                <circle
-                  cx={s.x}
-                  cy={s.y}
-                  r={r}
-                  fill={fill}
-                  opacity={baseOp}
-                  className={
-                    isCurrent
-                      ? "pulse-glow"
-                      : shimmer
-                      ? "star-shimmer"
-                      : undefined
-                  }
-                  style={{
-                    animationDelay: shimmer ? `${twinkleDelay(s.id)}s` : undefined,
-                    ...(shimmer
-                      ? ({
-                          ["--star-base-op" as never]: baseOp,
-                        } as React.CSSProperties)
-                      : {}),
-                    transition: "opacity 600ms var(--ease-cosmos)",
-                  }}
-                />
-              </g>
-            );
-          })}
-        </g>
+        {/* L4 — stars (clickable) */}
+        <StarLayer
+          stars={graph.stars}
+          currentStarId={currentStar?.id ?? null}
+          highlightedSet={highlightedStarIds}
+          hasSelection={hasSelection}
+          opacity={starOpacity}
+          onPick={selectStar}
+        />
       </svg>
 
       <BookSheet
-        book={openBook}
-        onClose={() => setOpenBookId(null)}
+        book={focusedBook}
+        // ↓↓↓ THE FIX: sheet close = full deselect, so dim/highlight cannot
+        // linger after the sheet is gone (root-cause of the "screen stays
+        // dim" bug).
+        onClose={clearSelection}
         getBook={(id) => books.find((b) => b.id === id)}
       />
+
       {isLone && mode === "explore" && (
-        <div
-          className="pointer-events-none absolute inset-x-0 top-[58%] z-20 flex justify-center"
-        >
+        <div className="pointer-events-none absolute inset-x-0 top-[58%] z-20 flex justify-center">
           <div
             className="rounded-full px-4 py-2"
             style={{
@@ -578,4 +251,463 @@ export function UniverseView({
       )}
     </>
   );
+}
+
+// ─── Layer sub-components (each is pure / depends only on its props) ──
+
+function PlanetLayer({ hidden }: { hidden: boolean }) {
+  return (
+    <g
+      style={{
+        opacity: hidden ? 0 : 1,
+        transition: "opacity 900ms var(--ease-cosmos)",
+      }}
+    >
+      {PLANETS.map((p) => (
+        <g key={p.id}>
+          <defs>
+            <radialGradient id={`pl-${p.id}`} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor={p.color} stopOpacity="0.10" />
+              <stop offset="70%" stopColor={p.color} stopOpacity="0.025" />
+              <stop offset="100%" stopColor={p.color} stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <circle cx={p.cx} cy={p.cy} r={p.r} fill={`url(#pl-${p.id})`} />
+          <circle
+            cx={p.cx}
+            cy={p.cy}
+            r={p.r}
+            fill="none"
+            stroke={p.color}
+            strokeOpacity={0.1}
+            strokeDasharray="3 6"
+          />
+          <text
+            x={p.cx}
+            y={p.cy - p.r + 26}
+            textAnchor="middle"
+            fill="var(--gold-deep)"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 20,
+              letterSpacing: "0.02em",
+              opacity: 0.55,
+            }}
+          >
+            {p.label}
+          </text>
+          <text
+            x={p.cx}
+            y={p.cy - p.r + 42}
+            textAnchor="middle"
+            fill="var(--gold-deep)"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 8.5,
+              letterSpacing: "0.2em",
+              opacity: 0.4,
+            }}
+          >
+            PLANET · {p.kind}
+          </text>
+        </g>
+      ))}
+    </g>
+  );
+}
+
+type Graph = ReturnType<typeof buildUniverseGraph>;
+
+function CandidateLayer({
+  visible,
+  candidates,
+}: {
+  visible: boolean;
+  candidates: Graph["candidates"];
+}) {
+  return (
+    <g
+      style={{
+        opacity: visible ? 0.55 : 0,
+        transition: "opacity 900ms var(--ease-cosmos)",
+      }}
+    >
+      {candidates.map((c, i) => (
+        // pointer-events: none so ghost rings can't intercept clicks meant for the SVG bg
+        <g key={i} style={{ pointerEvents: "none" }}>
+          <line
+            x1={c.fromX}
+            y1={c.fromY}
+            x2={c.x}
+            y2={c.y}
+            stroke="var(--ink-muted)"
+            strokeWidth={1}
+            strokeDasharray="2 3"
+            opacity={0.6}
+          />
+          <circle
+            cx={c.x}
+            cy={c.y}
+            r={3.2}
+            fill="none"
+            stroke="var(--ink-muted)"
+            strokeWidth={0.6}
+            strokeDasharray="1.5 2"
+            opacity={0.5}
+          />
+          <circle cx={c.x} cy={c.y} r={0.9} fill="var(--ink-muted)" opacity={0.55} />
+          {c.isLabel && (
+            <text
+              x={c.x + 10}
+              y={c.y + 4}
+              fill="var(--ink-muted)"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 11,
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                opacity: 0.6,
+              }}
+            >
+              다음 별 ?
+            </text>
+          )}
+        </g>
+      ))}
+    </g>
+  );
+}
+
+function LinkLayer({
+  graph,
+  highlightedSet,
+  hasSelection,
+  visible,
+}: {
+  graph: Graph;
+  highlightedSet: Set<string>;
+  hasSelection: boolean;
+  visible: boolean;
+}) {
+  return (
+    <g
+      style={{
+        opacity: visible ? 1 : 0,
+        transition: "opacity 900ms var(--ease-cosmos)",
+      }}
+    >
+      {graph.links.map((l, i) => {
+        const star = graph.starById[l.source];
+        const hub = graph.hubByKeyword[l.keyword];
+        if (!star || !hub) return null;
+        const key = `${l.source}->${l.target}`;
+        const isOn = highlightedSet.has(key);
+        // Without a selection, links stay invisible too — overview is calmer
+        const op = isOn ? 0.6 : hasSelection ? 0 : 0;
+        return (
+          <line
+            key={i}
+            x1={star.x}
+            y1={star.y}
+            x2={hub.x}
+            y2={hub.y}
+            stroke="var(--constellation)"
+            strokeWidth={isOn ? 1.3 : 1}
+            strokeOpacity={op}
+            strokeLinecap="round"
+            style={{
+              transition:
+                "stroke-opacity 600ms var(--ease-cosmos), stroke-width 600ms var(--ease-cosmos)",
+            }}
+          />
+        );
+      })}
+    </g>
+  );
+}
+
+function HubLayer({
+  hubs,
+  activeKeyword,
+  hasSelection,
+  visible,
+  onPick,
+}: {
+  hubs: Graph["hubs"];
+  activeKeyword: string | null;
+  hasSelection: boolean;
+  visible: boolean;
+  onPick: (keyword: string) => void;
+}) {
+  return (
+    <g
+      style={{
+        opacity: visible ? 1 : 0,
+        transition: "opacity 900ms var(--ease-cosmos)",
+      }}
+    >
+      {hubs.map((h) => {
+        const isActive = activeKeyword === h.keyword;
+        const dim = hasSelection && !isActive;
+        return (
+          <g
+            key={h.id}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPick(h.keyword);
+            }}
+            style={{ cursor: "pointer" }}
+          >
+            <circle
+              cx={h.x}
+              cy={h.y}
+              r={2}
+              fill="var(--ink-muted)"
+              opacity={dim ? 0.1 : 0.35}
+            />
+            {/* Larger invisible hit area for easier label clicking */}
+            <circle cx={h.x} cy={h.y} r={28} fill="transparent" />
+            <text
+              x={h.x + 12}
+              y={h.y + 4}
+              fill="var(--constellation)"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 13,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                opacity: dim ? 0.18 : isActive ? 0.95 : 0.55,
+                transition: "opacity 600ms var(--ease-cosmos)",
+                userSelect: "none",
+              }}
+            >
+              #{h.keyword}
+            </text>
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
+function StarLayer({
+  stars,
+  currentStarId,
+  highlightedSet,
+  hasSelection,
+  opacity,
+  onPick,
+}: {
+  stars: Graph["stars"];
+  currentStarId: string | null;
+  highlightedSet: Set<string>;
+  hasSelection: boolean;
+  opacity: number;
+  onPick: (bookId: string) => void;
+}) {
+  return (
+    <g
+      style={{
+        opacity,
+        transition: "opacity 1200ms var(--ease-cosmos)",
+      }}
+    >
+      {stars.map((s) => (
+        <Star
+          key={s.id}
+          star={s}
+          isCurrent={s.id === currentStarId}
+          isHighlighted={highlightedSet.has(s.id)}
+          hasSelection={hasSelection}
+          onPick={onPick}
+        />
+      ))}
+    </g>
+  );
+}
+
+// ─── Single star ─────────────────────────────────────────────────────
+
+function Star({
+  star,
+  isCurrent,
+  isHighlighted,
+  hasSelection,
+  onPick,
+}: {
+  star: Graph["stars"][number];
+  isCurrent: boolean;
+  isHighlighted: boolean;
+  hasSelection: boolean;
+  onPick: (bookId: string) => void;
+}) {
+  const tier = bookCompletion(star.book);
+  const dim = hasSelection && !isHighlighted && !isCurrent;
+  const isLit = tier >= 1;
+
+  // Size — tier 0 is markedly smaller, tier 3 noticeably bigger
+  const r = isCurrent ? 5.5 : tier === 3 ? 4 : tier >= 1 ? 3 : 2;
+  // Tier 0 still gets a faint halo so users see it's a real book, not decor
+  const haloR = isCurrent ? 22 : tier === 3 ? 18 : tier >= 1 ? 11 : 6;
+
+  const fill = isCurrent
+    ? "#E8F0FF"
+    : isHighlighted
+    ? "#FFFFFF"
+    : isLit
+    ? "#F4F4ED"
+    : "#5A6B8E";
+
+  const baseOp = isCurrent
+    ? 1
+    : dim
+    ? 0.12
+    : isHighlighted
+    ? 1
+    : tier === 0
+    ? 0.42
+    : tier === 3
+    ? 0.95
+    : 0.72;
+
+  const haloFill = isCurrent
+    ? "url(#starGlowBlue)"
+    : tier === 3
+    ? "url(#starGlowFull)"
+    : "url(#starGlowWhite)";
+
+  const showHalo = haloR > 0 && !dim;
+  const spikes = (tier === 3 || isCurrent) && !dim;
+  const spikeLen = isCurrent ? 14 : 11;
+  const spikeColor = isCurrent ? "#B8D0FF" : "#F4F4ED";
+  const shimmer = isLit && !isCurrent;
+
+  return (
+    <g
+      onClick={(e) => {
+        e.stopPropagation();
+        onPick(star.id);
+      }}
+      style={{ cursor: "pointer" }}
+    >
+      {showHalo && (
+        <circle
+          cx={star.x}
+          cy={star.y}
+          r={haloR}
+          fill={haloFill}
+          className={isCurrent || tier === 3 ? "star-halo-breathe" : undefined}
+          style={{
+            animationDelay:
+              isCurrent || tier === 3 ? `${twinkleDelay(star.id)}s` : undefined,
+          }}
+        />
+      )}
+      {spikes && (
+        <g opacity={isCurrent ? 0.7 : 0.5} style={{ mixBlendMode: "screen" }}>
+          <line
+            x1={star.x - spikeLen}
+            y1={star.y}
+            x2={star.x + spikeLen}
+            y2={star.y}
+            stroke={spikeColor}
+            strokeWidth={0.6}
+            strokeLinecap="round"
+          />
+          <line
+            x1={star.x}
+            y1={star.y - spikeLen}
+            x2={star.x}
+            y2={star.y + spikeLen}
+            stroke={spikeColor}
+            strokeWidth={0.6}
+            strokeLinecap="round"
+          />
+        </g>
+      )}
+      {/* Invisible hit area larger than the visible dot */}
+      <circle cx={star.x} cy={star.y} r={14} fill="transparent" />
+      <circle
+        cx={star.x}
+        cy={star.y}
+        r={r}
+        fill={fill}
+        opacity={baseOp}
+        className={isCurrent ? "pulse-glow" : shimmer ? "star-shimmer" : undefined}
+        style={{
+          animationDelay: shimmer ? `${twinkleDelay(star.id)}s` : undefined,
+          ...(shimmer
+            ? ({ ["--star-base-op" as never]: baseOp } as React.CSSProperties)
+            : {}),
+          transition: "opacity 600ms var(--ease-cosmos)",
+        }}
+      />
+    </g>
+  );
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────
+
+function twinkleDelay(seed: string): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return ((h % 280) / 100).toFixed(2);
+}
+
+/** Fit a viewbox around given points, padded, preserving canvas ratio. */
+function fitViewBox(points: Array<{ x: number; y: number }>): ViewBox {
+  if (points.length === 0) return FULL_VB;
+  const xs = points.map((p) => p.x);
+  const ys = points.map((p) => p.y);
+  const padX = 220;
+  const padY = 180;
+  const minX = Math.min(...xs) - padX;
+  const minY = Math.min(...ys) - padY;
+  const maxX = Math.max(...xs) + padX;
+  const maxY = Math.max(...ys) + padY;
+  let w = maxX - minX;
+  let h = maxY - minY;
+  const r = W / H;
+  if (w / h > r) h = w / r;
+  else w = h * r;
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  return [cx - w / 2, cy - h / 2, w, h];
+}
+
+function starsForHub(graph: Graph, hubId: string) {
+  const ids = graph.hubStars[hubId] ?? [];
+  return ids.map((id) => graph.starById[id]).filter(Boolean);
+}
+
+/** Smoothly tween between viewbox targets (cubic ease-out, 800ms). */
+function useAnimatedViewBox(target: ViewBox): ViewBox {
+  const [vb, setVb] = useState(target);
+  const fromRef = useRef(target);
+  const key = target.join(",");
+  useEffect(() => {
+    const from = fromRef.current;
+    const to = target;
+    const start = performance.now();
+    const dur = 800;
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / dur);
+      const e = ease(t);
+      const next: ViewBox = [
+        from[0] + (to[0] - from[0]) * e,
+        from[1] + (to[1] - from[1]) * e,
+        from[2] + (to[2] - from[2]) * e,
+        from[3] + (to[3] - from[3]) * e,
+      ];
+      setVb(next);
+      fromRef.current = next;
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return vb;
 }
