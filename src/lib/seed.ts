@@ -40,6 +40,9 @@ const SEED_SPECS: SeedSpec[] = [
     fallbackCategories: ["사회·정의", "용기·리더십", "철학"],
     coverColor: "#C9543B",
   },
+  // "권력 별자리" 시연용 (CSV에 1-A에서 추가됨)
+  { id: "b1984", title: "1984" },
+  { id: "bgiver", title: "기억 전달자" },
   // 이하 books.csv에서 가져온 이미-읽은 책들
   { id: "b02", title: "긴긴밤" },
   { id: "b03", title: "자전거 도둑" },
@@ -179,7 +182,7 @@ export const SEED_WORLDVIEW_CARDS: WorldviewCard[] = [
     nameKr: "정의를 묻는 자",
     nameEn: "THE SEEKER",
     arcanumType: "seeker",
-    quote: "정의는 다수의 편이 아니라 진실의 편이다.",
+    quote: "공정함은 결과가 아니라 누가 끝까지 묻느냐의 문제다.",
     booksCount: JUSTICE_BOOK_IDS.length,
     starsCount: JUSTICE_BOOK_IDS.length * 2,
     issuedAt: new Date(NOW - 7 * 86400000).toISOString(),
@@ -192,7 +195,7 @@ export const SEED_WORLDVIEW_CARDS: WorldviewCard[] = [
     nameKr: "자라난 의심",
     nameEn: "THE DOUBT",
     arcanumType: "doubt",
-    quote: "당연하다고 믿었던 것 뒤에는 늘 묻지 않은 질문이 있다.",
+    quote: "나를 가장 모르는 사람은 나일 때가 많다.",
     booksCount: PHILOSOPHY_BOOK_IDS.length,
     starsCount: PHILOSOPHY_BOOK_IDS.length * 2 + 2,
     issuedAt: new Date(NOW - 2 * 86400000).toISOString(),

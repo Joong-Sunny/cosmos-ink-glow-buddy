@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useUniverseStore } from "@/lib/store";
 
 export const Route = createFileRoute("/star-born/$bookId")({
   component: Page,
@@ -7,13 +7,18 @@ export const Route = createFileRoute("/star-born/$bookId")({
 
 function Page() {
   const navigate = useNavigate();
+  const { bookId } = Route.useParams();
+  const book = useUniverseStore((s) => s.books.find((b) => b.id === bookId));
 
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      navigate({ to: "/constellation/$keyword", params: { keyword: "사회·정의" } });
-    }, 3200);
-    return () => window.clearTimeout(t);
-  }, [navigate]);
+  const targetKeyword = book?.keywords?.[0] ?? "사회·정의";
+
+  const goConstellation = () =>
+    navigate({
+      to: "/constellation/$keyword",
+      params: { keyword: targetKeyword },
+    });
+
+  // 자동 이동 제거 — CTA 클릭 시에만 이동.
 
   return (
     <main
@@ -73,10 +78,75 @@ function Page() {
         }}
       />
 
+      {/* today's thought 요약 카드 */}
+      <div
+        style={{
+          marginTop: 32,
+          padding: "20px 24px",
+          maxWidth: 360,
+          background: "rgba(143,184,255,0.06)",
+          border: "1px solid rgba(143,184,255,0.25)",
+          borderRadius: 14,
+          opacity: 0,
+          animation: "rise 0.8s var(--ease-cosmos) 1.5s forwards",
+        }}
+      >
+        <div
+          style={{
+            color: "var(--gold-deep)",
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            letterSpacing: "0.2em",
+          }}
+        >
+          TODAY'S THOUGHT
+        </div>
+        <p
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 16,
+            color: "var(--ink-primary)",
+            lineHeight: 1.5,
+            marginTop: 8,
+          }}
+        >
+          권력은 처음의 평등을 흔든다. 나폴레옹의 변화는 우리에게도 일어날 수 있다.
+        </p>
+      </div>
+
+      {/* 키워드 칩 3개 — stagger */}
+      <div
+        style={{
+          marginTop: 16,
+          display: "flex",
+          gap: 8,
+          justifyContent: "center",
+        }}
+      >
+        {["권력", "평등", "변화"].map((kw, i) => (
+          <span
+            key={kw}
+            style={{
+              padding: "6px 14px",
+              borderRadius: 999,
+              background: "rgba(232,181,71,0.10)",
+              border: "1px solid rgba(232,181,71,0.35)",
+              color: "var(--gold-soft)",
+              fontFamily: "var(--font-body)",
+              fontSize: 13,
+              opacity: 0,
+              animation: `rise 0.6s var(--ease-cosmos) ${(2.0 + i * 0.12).toFixed(
+                2,
+              )}s forwards`,
+            }}
+          >
+            #{kw}
+          </span>
+        ))}
+      </div>
+
       <button
-        onClick={() =>
-          navigate({ to: "/constellation/$keyword", params: { keyword: "사회·정의" } })
-        }
+        onClick={goConstellation}
         className="mt-12 rounded-full px-7 py-3 transition-transform active:scale-[0.98]"
         style={{
           border: "1px solid var(--gold)",
@@ -85,10 +155,10 @@ function Page() {
           fontSize: 14,
           background: "rgba(232,181,71,0.06)",
           opacity: 0,
-          animation: "rise 0.6s var(--ease-cosmos) 1.6s forwards",
+          animation: "rise 0.6s var(--ease-cosmos) 2.8s forwards",
         }}
       >
-        별자리에서 보기 →
+        별자리에서 만나기 →
       </button>
     </main>
   );

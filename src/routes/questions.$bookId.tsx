@@ -192,7 +192,7 @@ function QuestionCard({
         >
           {meta.label}
         </span>
-        <span className="font-display-italic text-[11px] text-[var(--ink-muted)]">
+        <span className="font-display-italic text-[13px] text-[var(--ink-muted)]">
           #{q.keyword}
         </span>
       </div>
@@ -206,7 +206,7 @@ function QuestionCard({
           “
         </span>
         <p
-          className="font-display text-[18px] leading-[1.5] text-[var(--ink-primary)]"
+          className="font-display text-[20px] leading-[1.5] text-[var(--ink-primary)]"
           style={{ letterSpacing: "-0.01em" }}
         >
           {q.text}

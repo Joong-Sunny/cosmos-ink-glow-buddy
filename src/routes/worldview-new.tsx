@@ -21,15 +21,15 @@ function Page() {
       state.addWorldviewCard({
         id: NEW_CARD_ID,
         romanNumeral: "III",
-        nameKr: "스스로 빛나는 별",
-        nameEn: "A STAR ALIGHT",
+        nameKr: "권력을 의심하는 자",
+        nameEn: "THE ONE WHO QUESTIONS POWER",
         arcanumType: "starAlight",
-        quote: "내 안의 질문이 켜질 때, 별은 비로소 스스로 빛난다.",
-        booksCount: 5,
+        quote: "평등은 한 번 만든다고 끝이 아니라, 매일 지켜내야 하는 약속이다.",
+        booksCount: 6,
         starsCount: 12,
         issuedAt: new Date().toISOString(),
         relatedKeyword: "사회·정의",
-        relatedBookIds: ["b01", "b03", "b11", "b23", "b25"],
+        relatedBookIds: ["b01", "b1984", "bgiver", "b11", "b14", "b30"],
       });
     }
     setTimeout(() => navigate({ to: "/worldview" }), 350);

@@ -40,6 +40,47 @@ const BOOK_OVERRIDES: Record<string, Record<string, Override>> = {
       category: "critical",
     },
   },
+  b1984: {
+    "사회·정의": {
+      level: "L3",
+      text: "'전쟁은 평화다'라는 구호는 어떤 의미일까?",
+      category: "inference",
+    },
+    "철학": {
+      level: "L4",
+      text: "작가는 이 소설로 어떤 경고를 하고 싶었을까?",
+      category: "critical",
+    },
+  },
+  bgiver: {
+    "사회·정의": {
+      level: "L3",
+      text: "마을 사람들은 왜 고통과 기쁨을 모두 잃은 것에 만족했을까?",
+      category: "inference",
+    },
+    "철학": {
+      level: "L4",
+      text: "고통이 없는 세상은 정말 행복한 세상일까?",
+      category: "critical",
+    },
+    "성장": {
+      level: "L5",
+      text: "우리 사회가 '편안함'을 위해 포기한 것이 있다면?",
+      category: "meta",
+    },
+  },
+  b11: {
+    "사회·정의": {
+      level: "L3",
+      text: "한병태는 왜 결국 엄석대에게 굴복했을까?",
+      category: "inference",
+    },
+    "철학": {
+      level: "L4",
+      text: "반 아이들은 알면서도 침묵했을까, 정말 몰랐을까?",
+      category: "critical",
+    },
+  },
 };
 
 function fallbackFor(keyword: string): Override {
@@ -129,7 +170,7 @@ export const SIMULATED_ANSWERS: Record<string, string> = {
   "b01:k0:f1":
     "권력 자체가 사람을 만드는 거 같다. 누가 그 자리에 있어도 비슷했을 듯. 나폴레옹이 특별히 나쁜 게 아니라, 그 자리가 특별히 무서운 거.",
   "b01:k0:f2":
-    "반장 선거 때 가끔 그런 친구가 있다. 처음엔 다 같이 놀자고 하다가, 뽑히고 나면 자기 무리만 챙기는. 큰 권력이 아니어도 작은 권력에서도 똑같이 일어나는 거 같다.",
+    "우리 반에도 비슷한 일이 있다. 처음엔 다 같이 정한 규칙이었는데, 누가 반장이 되고 나면 규칙이 슬쩍슬쩍 바뀐다. 그리고 아무도 그게 바뀌었다고 말 안 한다. 평등은 한 번 만든다고 끝이 아니라, 매일 지켜내야 하는 약속이다.",
 };
 
 export const LEVEL_META: Record<

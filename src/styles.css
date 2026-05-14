@@ -1,9 +1,11 @@
+/* External font imports must come BEFORE any other @import / rule. */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css');
+@import url('https://cdn.jsdelivr.net/gh/wizfile/font-ridibatang@master/RIDIBatang.css');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500;1,9..144,600&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
-
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&family=Gowun+Batang:wght@400;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500;1,9..144,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -67,8 +69,8 @@
   --color-ring: var(--star-active);
 
   /* Fonts */
-  --font-display: "Noto Serif KR", "Gowun Batang", "Fraunces", serif;
-  --font-display-italic: "Fraunces", "Cormorant Garamond", "Noto Serif KR", serif;
+  --font-display: "RIDIBatang", "Apple SD Gothic Neo", serif;
+  --font-display-italic: "Fraunces", "RIDIBatang", serif;
   --font-body: "Pretendard Variable", "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
 
@@ -180,16 +182,22 @@
 }
 @utility text-caption {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
   font-weight: 300;
 }
 @utility text-meta {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   font-weight: 400;
+}
+@utility safe-top {
+  padding-top: max(env(safe-area-inset-top), 16px);
+}
+@utility safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 16px);
 }
 
 @utility font-display {

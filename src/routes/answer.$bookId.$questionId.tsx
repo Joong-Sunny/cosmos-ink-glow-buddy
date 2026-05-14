@@ -449,14 +449,14 @@ function TurnBlock({ turn }: { turn: Turn }) {
       >
         <div
           className="text-meta text-[var(--ink-muted)]"
-          style={{ fontSize: 8 }}
+          style={{ fontSize: 10 }}
         >
           Q · {turn.question.level}
           {turn.arriving && (
             <span className="ml-1.5 text-[var(--gold)]">· JUST ARRIVED</span>
           )}
         </div>
-        <p className="mt-1 font-display text-[13px] leading-[1.5] text-[var(--ink-primary)]">
+        <p className="mt-1 font-display text-[15px] leading-[1.5] text-[var(--ink-primary)]">
           {turn.question.text}
         </p>
       </div>
@@ -470,11 +470,11 @@ function TurnBlock({ turn }: { turn: Turn }) {
           >
             <div
               className="text-right text-meta text-[var(--ink-muted)]"
-              style={{ fontSize: 8 }}
+              style={{ fontSize: 10 }}
             >
               YOU
             </div>
-            <p className="mt-1 font-display-italic text-[13px] leading-[1.4] text-[var(--ink-secondary)]">
+            <p className="mt-1 font-display-italic text-[14px] leading-[1.4] text-[var(--ink-secondary)]">
               {turn.answer}
             </p>
           </div>

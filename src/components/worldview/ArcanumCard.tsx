@@ -37,15 +37,15 @@ function DoubtArcanum() {
           <stop offset="100%" stopColor="#E8B547" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <circle r={64} fill="url(#ac-doubt-halo)" />
-      <circle r={58} fill="none" stroke="var(--gold)" strokeWidth={0.6} strokeDasharray="2 2" opacity={0.5} />
-      <circle r={50} fill="none" stroke="var(--gold)" strokeWidth={0.8} opacity={0.7} />
+      <circle r={46} fill="url(#ac-doubt-halo)" />
+      <circle r={42} fill="none" stroke="var(--gold)" strokeWidth={0.6} strokeDasharray="2 2" opacity={0.5} />
+      <circle r={36} fill="none" stroke="var(--gold)" strokeWidth={0.8} opacity={0.7} />
 
-      {/* 8 small stars on r=44 */}
+      {/* 8 small stars on r=30 */}
       {Array.from({ length: 8 }).map((_, i) => {
         const a = (i * Math.PI) / 4;
-        const x = Math.cos(a) * 44;
-        const y = Math.sin(a) * 44;
+        const x = Math.cos(a) * 30;
+        const y = Math.sin(a) * 30;
         return (
           <g key={i} transform={`translate(${x} ${y})`}>
             <path
@@ -61,23 +61,23 @@ function DoubtArcanum() {
           key={deg}
           x1={0}
           y1={0}
-          x2={Math.cos((deg * Math.PI) / 180) * 24}
-          y2={Math.sin((deg * Math.PI) / 180) * 24}
+          x2={Math.cos((deg * Math.PI) / 180) * 18}
+          y2={Math.sin((deg * Math.PI) / 180) * 18}
           stroke="var(--gold)"
           strokeWidth={0.4}
           opacity={0.3}
         />
       ))}
-      {/* Eye */}
+      {/* Eye (축소: -22,22 → -16,16) */}
       <path
-        d="M -22 0 Q 0 -16 22 0 Q 0 16 -22 0 Z"
+        d="M -16 0 Q 0 -12 16 0 Q 0 12 -16 0 Z"
         fill="#08050C"
         stroke="var(--gold)"
         strokeWidth={1}
       />
-      <circle cx={0} cy={0} r={10} fill="var(--gold-soft)" />
-      <circle cx={0} cy={0} r={5} fill="#08050C" />
-      <circle cx={-1.6} cy={-1.6} r={1.2} fill="#FFFFFF" />
+      <circle cx={0} cy={0} r={7} fill="var(--gold-soft)" />
+      <circle cx={0} cy={0} r={3.5} fill="#08050C" />
+      <circle cx={-1.2} cy={-1.2} r={1} fill="#FFFFFF" />
     </g>
   );
 }
@@ -85,9 +85,9 @@ function DoubtArcanum() {
 function SeekerArcanum() {
   return (
     <g transform="translate(140 190)">
-      <circle r={56} fill="none" stroke="var(--gold)" strokeWidth={0.5} strokeDasharray="2 2" opacity={0.5} />
+      <circle r={42} fill="none" stroke="var(--gold)" strokeWidth={0.5} strokeDasharray="2 2" opacity={0.5} />
       <path
-        d="M 0 -36 L 8 -8 L 36 0 L 8 8 L 0 36 L -8 8 L -36 0 L -8 -8 Z"
+        d="M 0 -26 L 6 -6 L 26 0 L 6 6 L 0 26 L -6 6 L -26 0 L -6 -6 Z"
         fill="var(--gold-soft)"
         opacity={0.85}
       />
@@ -98,10 +98,10 @@ function SeekerArcanum() {
 function StarAlightArcanum() {
   return (
     <g transform="translate(140 190)">
-      <circle r={6} fill="var(--gold-soft)" />
+      <circle r={4.5} fill="var(--gold-soft)" />
       {[0, 120, 240].map((deg) => {
-        const r1 = 36;
-        const r2 = 56;
+        const r1 = 26;
+        const r2 = 40;
         const a = (deg * Math.PI) / 180;
         return (
           <g key={deg}>
@@ -124,8 +124,8 @@ function StarAlightArcanum() {
               strokeDasharray="2 3"
               opacity={0.5}
             />
-            <circle cx={Math.cos(a) * r1} cy={Math.sin(a) * r1} r={2.4} fill="var(--gold-soft)" />
-            <circle cx={Math.cos(a) * r2} cy={Math.sin(a) * r2} r={1.4} fill="var(--gold)" opacity={0.5} />
+            <circle cx={Math.cos(a) * r1} cy={Math.sin(a) * r1} r={2} fill="var(--gold-soft)" />
+            <circle cx={Math.cos(a) * r2} cy={Math.sin(a) * r2} r={1.2} fill="var(--gold)" opacity={0.5} />
           </g>
         );
       })}
@@ -221,7 +221,7 @@ export const ArcanumCard = memo(function ArcanumCard({
         fill="var(--gold-deep)"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 6.5,
+          fontSize: 8,
           letterSpacing: 3.5,
         }}
       >
@@ -258,7 +258,7 @@ export const ArcanumCard = memo(function ArcanumCard({
       {/* italic name */}
       <text
         x={140}
-        y={326}
+        y={316}
         textAnchor="middle"
         fill="var(--gold-soft)"
         style={{
@@ -273,13 +273,13 @@ export const ArcanumCard = memo(function ArcanumCard({
       {/* English subtitle */}
       <text
         x={140}
-        y={348}
+        y={336}
         textAnchor="middle"
         fill="var(--gold-deep)"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 6.5,
-          letterSpacing: 2.5,
+          fontSize: 8,
+          letterSpacing: 2.0,
         }}
       >
         {nameEn}
@@ -288,7 +288,7 @@ export const ArcanumCard = memo(function ArcanumCard({
       {/* Quote */}
       <text
         x={36}
-        y={380}
+        y={362}
         fill="var(--gold)"
         opacity={0.35}
         style={{ fontFamily: "var(--font-display-italic)", fontStyle: "italic", fontSize: 14 }}
@@ -297,35 +297,35 @@ export const ArcanumCard = memo(function ArcanumCard({
       </text>
       <text
         x={140}
-        y={380}
+        y={362}
         textAnchor="middle"
         fill="#b8d0ff"
         opacity={0.95}
         style={{
           fontFamily: "var(--font-display-italic)",
           fontStyle: "italic",
-          fontSize: 9.5,
+          fontSize: 12,
         }}
       >
         {quoteLine1}
       </text>
       <text
         x={140}
-        y={394}
+        y={378}
         textAnchor="middle"
         fill="#b8d0ff"
         opacity={0.95}
         style={{
           fontFamily: "var(--font-display-italic)",
           fontStyle: "italic",
-          fontSize: 9.5,
+          fontSize: 12,
         }}
       >
         {quoteLine2}
       </text>
       <text
         x={244}
-        y={394}
+        y={378}
         fill="var(--gold)"
         opacity={0.35}
         style={{ fontFamily: "var(--font-display-italic)", fontStyle: "italic", fontSize: 14 }}
@@ -336,41 +336,41 @@ export const ArcanumCard = memo(function ArcanumCard({
       {/* source */}
       <text
         x={140}
-        y={408}
+        y={394}
         textAnchor="middle"
         fill="#9aa0bd"
         opacity={0.75}
-        style={{ fontFamily: "var(--font-display-italic)", fontStyle: "italic", fontSize: 8 }}
+        style={{ fontFamily: "var(--font-display-italic)", fontStyle: "italic", fontSize: 10 }}
       >
         {quoteSource}
       </text>
 
       {/* meta band */}
-      <line x1={30} y1={418} x2={250} y2={418} stroke="var(--gold)" strokeWidth={0.5} opacity={0.7} />
-      <line x1={30} y1={422} x2={250} y2={422} stroke="var(--gold)" strokeWidth={0.5} opacity={0.4} />
+      <line x1={30} y1={410} x2={250} y2={410} stroke="var(--gold)" strokeWidth={0.5} opacity={0.7} />
+      <line x1={30} y1={414} x2={250} y2={414} stroke="var(--gold)" strokeWidth={0.5} opacity={0.4} />
       <text
         x={36}
-        y={432}
+        y={424}
         fill="var(--gold-deep)"
-        style={{ fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 1 }}
+        style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: 1 }}
       >
         {books} BOOKS
       </text>
       <text
         x={140}
-        y={432}
+        y={424}
         textAnchor="middle"
         fill="var(--gold)"
-        style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 1 }}
+        style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 1 }}
       >
         ✦ {stars} STARS ✦
       </text>
       <text
         x={244}
-        y={432}
+        y={424}
         textAnchor="end"
         fill="var(--gold-deep)"
-        style={{ fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 1 }}
+        style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: 1 }}
       >
         {date}
       </text>
@@ -380,13 +380,14 @@ export const ArcanumCard = memo(function ArcanumCard({
 
 export const CARD_III: ArcanumCardProps = {
   romanNumeral: "III",
-  nameKrLine1: "스스로",
-  nameKrItalic: "빛나는 별",
-  nameEn: "A STAR ALIGHT",
+  nameKrLine1: "권력을",
+  nameKrItalic: "의심하는 자",
+  nameEn: "THE ONE WHO QUESTIONS POWER",
   arcanumType: "starAlight",
-  quoteLine1: "내 안의 질문이 켜질 때,",
-  quoteLine2: "별은 비로소 스스로 빛난다.",
-  books: 5,
+  quoteLine1: "평등은 한 번 만든다고 끝이 아니라,",
+  quoteLine2: "매일 지켜내야 하는 약속이다.",
+  quoteSource: "— 너의 동물농장 답변에서",
+  books: 6,
   stars: 12,
   date: "26·05·14",
 };

@@ -76,8 +76,8 @@ function Home() {
           <p
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: 44,
-              lineHeight: 1.45,
+              fontSize: 32,
+              lineHeight: 1.5,
               color: "var(--ink-primary)",
               letterSpacing: "-0.01em",
             }}
