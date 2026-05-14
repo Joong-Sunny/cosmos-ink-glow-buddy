@@ -115,7 +115,25 @@
     background-color: var(--bg-cosmos);
     color: var(--ink-primary);
     font-family: var(--font-body);
+    font-feature-settings: "ss01", "ss02", "cv01", "cv11", "kern", "calt";
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Refined display typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-feature-settings: "kern", "liga", "calt";
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  em, i, .italic {
+    font-family: var(--font-display-italic);
+    font-style: italic;
+    font-feature-settings: "kern", "liga", "dlig", "swsh";
   }
 
   /* Dark scrollbar */
