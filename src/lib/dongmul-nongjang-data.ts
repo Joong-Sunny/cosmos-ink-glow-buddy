@@ -162,7 +162,8 @@ export const followUpQuestions: Record<
 
 /**
  * Demo simulated answers, keyed by question id (initial or follow-up).
- * Only used when (demoMode && autoSimEnabled).
+ * The answer page auto-types these into the compose box for the demo
+ * (see /answer/$bookId/$questionId).
  */
 export const SIMULATED_ANSWERS: Record<string, string> = {
   "b01:k0":

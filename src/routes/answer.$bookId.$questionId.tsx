@@ -36,8 +36,6 @@ function AnswerPage() {
     [cards, questionId],
   );
 
-  const demoMode = useUniverseStore((s) => s.demoMode);
-  const autoSimEnabled = useUniverseStore((s) => s.autoSimEnabled);
   const markCardAnswered = useUniverseStore((s) => s.markCardAnswered);
   const addThreadTurn = useUniverseStore((s) => s.addThreadTurn);
 
@@ -58,11 +56,11 @@ function AnswerPage() {
     if (initialQ) setActiveQ(initialQ);
   }, [initialQ]);
 
-  // Auto-typing simulation — only when demo + sim enabled
+  // Auto-typing simulation — always on (demo defaults).
+  // If the question has no SIMULATED_ANSWERS entry, this is a no-op.
   useEffect(() => {
     clearTimers();
     if (mode !== "compose" || !activeQ) return;
-    if (!(demoMode && autoSimEnabled)) return;
     const target = SIMULATED_ANSWERS[activeQ.id];
     if (!target) return;
 
@@ -79,7 +77,7 @@ function AnswerPage() {
     typingTimers.current.push(window.setTimeout(tick, 800));
     return clearTimers;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, activeQ?.id, demoMode, autoSimEnabled]);
+  }, [mode, activeQ?.id]);
 
   function clearTimers() {
     typingTimers.current.forEach((t) => window.clearTimeout(t));

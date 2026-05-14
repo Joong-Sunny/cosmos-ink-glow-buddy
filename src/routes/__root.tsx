@@ -10,7 +10,6 @@ import {
 
 import appCss from "../styles.css?url";
 import { StarField } from "@/components/StarField";
-import { DemoControls } from "@/components/DemoControls";
 import { MinScreenGuard } from "@/components/layout/MinScreenGuard";
 
 function NotFoundComponent() {
@@ -121,7 +120,6 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <StarField />
       <Outlet />
-      <DemoControls />
       <MinScreenGuard />
     </QueryClientProvider>
   );

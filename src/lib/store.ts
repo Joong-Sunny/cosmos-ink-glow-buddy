@@ -9,18 +9,22 @@ import {
   generateStarPositions,
 } from "./seed";
 
+/**
+ * Universe data store
+ * ===================
+ * The persisted "what's in my universe" model — books, threads, world-view
+ * cards, star positions. Demo-time UI knobs (auto-typing speed, dev nav,
+ * etc.) used to live here too; they were removed once the flow was stable
+ * because every extra toggle was a source of "why doesn't X work?" bugs.
+ * Everything that used to be configurable now runs at the default.
+ */
+
 type State = {
   books: Book[];
   threads: ThreadTurn[];
   worldviewCards: WorldviewCard[];
   starPositions: Record<string, StarPosition>;
   currentBookId: string | null;
-  devNavHidden: boolean;
-  demoMode: boolean;
-  simSpeed: 0.5 | 1 | 2;
-  autoAdvance: boolean;
-  /** When demoMode && autoSimEnabled, the answer page auto-types. */
-  autoSimEnabled: boolean;
 };
 
 type Actions = {
@@ -30,11 +34,6 @@ type Actions = {
   addWorldviewCard: (card: WorldviewCard) => void;
   markCardAnswered: (bookId: string, keywordIndex: number) => void;
   addKeywordToBook: (bookId: string, keyword: string) => void;
-  setDevNavHidden: (hidden: boolean) => void;
-  setDemoMode: (b: boolean) => void;
-  setSimSpeed: (s: 0.5 | 1 | 2) => void;
-  setAutoAdvance: (b: boolean) => void;
-  setAutoSimEnabled: (b: boolean) => void;
   resetUniverse: () => void;
   reset: () => void;
 };
@@ -45,11 +44,6 @@ const initial: State = {
   worldviewCards: SEED_WORLDVIEW_CARDS,
   starPositions: SEED_STAR_POSITIONS,
   currentBookId: null,
-  devNavHidden: false,
-  demoMode: true,
-  simSpeed: 1,
-  autoAdvance: true,
-  autoSimEnabled: true,
 };
 
 export const useUniverseStore = create<State & Actions>()(
@@ -88,11 +82,6 @@ export const useUniverseStore = create<State & Actions>()(
         });
         set({ books });
       },
-      setDevNavHidden: (hidden) => set({ devNavHidden: hidden }),
-      setDemoMode: (b) => set({ demoMode: b }),
-      setSimSpeed: (s) => set({ simSpeed: s }),
-      setAutoAdvance: (b) => set({ autoAdvance: b }),
-      setAutoSimEnabled: (b) => set({ autoSimEnabled: b }),
       resetUniverse: () =>
         set({
           books: SEED_BOOKS,
@@ -104,7 +93,9 @@ export const useUniverseStore = create<State & Actions>()(
       reset: () => set(initial),
     }),
     {
-      name: "book-universe-v4",
+      // Bumped to v5 so old localStorage with demoMode/simSpeed/etc. shape
+      // is invalidated and re-seeded on next load.
+      name: "book-universe-v5",
       storage: createJSONStorage(() =>
         typeof window !== "undefined" ? window.localStorage : (undefined as never),
       ),
