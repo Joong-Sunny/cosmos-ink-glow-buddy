@@ -5,10 +5,10 @@ import { useUniverseStore } from "@/lib/store";
 import { FloatingPanel } from "@/components/layout/FloatingPanel";
 import { useSmartBack } from "@/hooks/use-smart-back";
 import {
-  followUpQuestions,
   getCardsForBook,
+  getFollowUpsForCard,
+  getSimulatedAnswer,
   LEVEL_META,
-  SIMULATED_ANSWERS,
   type CardQuestion,
 } from "@/lib/dongmul-nongjang-data";
 
@@ -59,12 +59,12 @@ function AnswerPage() {
     if (initialQ) setActiveQ(initialQ);
   }, [initialQ]);
 
-  // Auto-typing simulation — always on (demo defaults).
-  // If the question has no SIMULATED_ANSWERS entry, this is a no-op.
+  // Auto-typing simulation — always on. If the (book, question) has no
+  // hand-written demo content, the helper returns undefined and we no-op.
   useEffect(() => {
     clearTimers();
     if (mode !== "compose" || !activeQ) return;
-    const target = SIMULATED_ANSWERS[activeQ.id];
+    const target = getSimulatedAnswer(book, activeQ);
     if (!target) return;
 
     setDraft("");
@@ -124,7 +124,9 @@ function AnswerPage() {
     });
 
     // Determine next follow-up based on the originally-picked card
-    const followUps = followUpQuestions[initialQ?.id ?? ""] ?? [];
+    const followUps = initialQ
+      ? getFollowUpsForCard(book, initialQ.keywordIndex)
+      : [];
     const askedIds = nextTurns.map((t) => t.question.id);
     const nextFollow = followUps.find((f) => !askedIds.includes(f.id));
 

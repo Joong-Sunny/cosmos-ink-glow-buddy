@@ -4,86 +4,116 @@ import type {
   QuestionCategory,
 } from "./types";
 
+/**
+ * Question bank
+ * =============
+ * Keyed by **book title** (not book id) so the same questions apply
+ * whether the book came in as a hand-crafted seed entry or as a CSV
+ * import via the register modal (different ids, same title).
+ *
+ * Demo USP: when the user answers an initial question, the follow-up
+ * questions *name specific seed books they've already answered* — that's
+ * what makes the new star feel like it's connecting to existing stars
+ * in their universe.
+ *
+ * Layout:
+ *   QUESTION_BANK[title][keyword] = {
+ *     initial:    one initial question
+ *     followUps:  ordered list of follow-up questions
+ *     simulated:  auto-typed answers (index 0 = initial, 1 = f1, 2 = f2)
+ *   }
+ */
+
 export type CardQuestion = {
-  /** Stable id like "b01:k0" — also serves as URL param */
   id: string;
   bookId: string;
   keyword: string;
-  /** index of the keyword inside book.keywords */
   keywordIndex: number;
   level: QuestionLevel;
   text: string;
   category?: QuestionCategory;
 };
 
-export const DONGMUL_BOOK_ID = "b01";
+export type FollowUp = {
+  id: string;
+  level: QuestionLevel;
+  text: string;
+  category?: QuestionCategory;
+};
 
-type Override = Omit<CardQuestion, "id" | "bookId" | "keyword" | "keywordIndex">;
+type QuestionData = {
+  level: QuestionLevel;
+  text: string;
+  category?: QuestionCategory;
+};
 
-// Curated question per (bookId, keyword). Falls back to a generic prompt
-// for any (book, keyword) not listed here.
-const BOOK_OVERRIDES: Record<string, Record<string, Override>> = {
-  b01: {
-    "사회·정의": {
+type KeywordBundle = {
+  initial: QuestionData;
+  followUps: QuestionData[];
+  /** index 0 = initial, 1 = f1, 2 = f2, ... — used by the answer page's
+   *  auto-typing demo. Indices beyond the array length = no auto-typing. */
+  simulated: string[];
+};
+
+/** The demo book. Hand-crafted to thread back into the seed universe. */
+const DONGMUL_NONGJANG: Record<string, KeywordBundle> = {
+  "사회·정의": {
+    initial: {
       level: "L3",
-      text: "나폴레옹은 왜 다른 돼지들과 다르게 행동했을까?",
+      text: "권력은 어느 장면에서 처음 변하기 시작했어?",
       category: "inference",
     },
-    "용기·리더십": {
-      level: "L2",
-      text: "동물들은 왜 처음에 반란에 찬성했어?",
-      category: "plot",
-    },
-    "철학": {
-      level: "L4",
-      text: "작가는 정말 혁명에 반대했을까?",
-      category: "critical",
-    },
+    followUps: [
+      {
+        level: "L4",
+        text: "예전에 답한 「우리들의 일그러진 영웅」의 엄석대를 떠올려봐. 나폴레옹과 엄석대는 권력을 잡은 방식이 닮았을까, 달랐을까?",
+        category: "critical",
+      },
+      {
+        level: "L5",
+        text: "「1984」의 빅 브라더까지 떠올려보면, 세 권력자가 공통으로 '먼저 한 일'이 있어. 우리 일상의 작은 권력도 같은 방식으로 시작될까?",
+        category: "meta",
+      },
+    ],
+    simulated: [
+      "처음엔 같이 정한 규칙이었는데, 나폴레옹이 우유랑 사과를 따로 챙기는 장면이 결정적이었던 것 같다. 모두가 '리더는 더 가져도 돼'라고 침묵하는 순간.",
+      "엄석대는 처음부터 강압이었고, 나폴레옹은 처음엔 동등했다가 점점 위로 갔다. 시작은 다른데 끝은 비슷하다. 둘 다 주변이 침묵하면서 굳어졌으니까.",
+      "빅 브라더는 보이지 않고, 엄석대는 너무 잘 보였고, 나폴레옹은 처음엔 친구였어. 공통으로 한 일은 '규칙을 자기 편한 대로 다시 쓴 것'. 우리 반에서도 반장이 그러면 다들 그냥 받아들인다. 평등은 한 번 만든다고 끝이 아니라, 매일 지켜내야 하는 약속이다.",
+    ],
   },
-  b1984: {
-    "사회·정의": {
-      level: "L3",
-      text: "'전쟁은 평화다'라는 구호는 어떤 의미일까?",
-      category: "inference",
-    },
-    "철학": {
+  "철학": {
+    initial: {
       level: "L4",
-      text: "작가는 이 소설로 어떤 경고를 하고 싶었을까?",
+      text: "이 동물 우화가 진짜로 의심하라고 가리키는 '당연한 것'은 뭘까?",
       category: "critical",
     },
-  },
-  bgiver: {
-    "사회·정의": {
-      level: "L3",
-      text: "마을 사람들은 왜 고통과 기쁨을 모두 잃은 것에 만족했을까?",
-      category: "inference",
-    },
-    "철학": {
-      level: "L4",
-      text: "고통이 없는 세상은 정말 행복한 세상일까?",
-      category: "critical",
-    },
-    "성장": {
-      level: "L5",
-      text: "우리 사회가 '편안함'을 위해 포기한 것이 있다면?",
-      category: "meta",
-    },
-  },
-  b11: {
-    "사회·정의": {
-      level: "L3",
-      text: "한병태는 왜 결국 엄석대에게 굴복했을까?",
-      category: "inference",
-    },
-    "철학": {
-      level: "L4",
-      text: "반 아이들은 알면서도 침묵했을까, 정말 몰랐을까?",
-      category: "critical",
-    },
+    followUps: [
+      {
+        level: "L4",
+        text: "예전에 답한 「어린 왕자」에서 '어른들은 숫자만 좋아한다'고 했지. 동물농장의 돼지들도 결국 비슷한 어른이 돼. 두 책이 말하는 '잃어버린 것'은 같은 것일까?",
+        category: "critical",
+      },
+      {
+        level: "L5",
+        text: "「정의란 무엇인가」까지 셋을 함께 놓고 보면, 세 책이 공통으로 '의심해야 한다'고 말하는 건 뭐야? 너는 그것을 일상에서 의심해본 적 있어?",
+        category: "meta",
+      },
+    ],
+    simulated: [
+      "처음에 다 같이 정한 약속이 점점 '원래 그랬던 것'처럼 바뀌어 가는 게 무서웠다. 당연하다고 받아들이는 순간 이미 바뀌어 있다.",
+      "어린 왕자는 숫자에 빠진 어른들이 슬펐고, 동물농장은 계산하는 동물들이 무서웠다. 둘 다 '천천히 보고, 묻는 마음'을 잃은 거 같다.",
+      "세 책 다 '자기가 맞다고 너무 확신하는 것'을 의심하라고 한다. 나도 친구랑 다툴 때 내가 맞다고만 우긴 적이 많은데, 한 번 더 묻는 연습을 해야겠다.",
+    ],
   },
 };
 
-function fallbackFor(keyword: string): Override {
+const QUESTION_BANK: Record<string, Record<string, KeywordBundle>> = {
+  "동물농장": DONGMUL_NONGJANG,
+};
+
+// ─── Public helpers ──────────────────────────────────────────────────
+
+function fallbackFor(keyword: string): QuestionData {
   return {
     level: "L3",
     text: `이 책에서 '${keyword}'은(는) 어떻게 드러나니?`,
@@ -91,12 +121,12 @@ function fallbackFor(keyword: string): Override {
   };
 }
 
-/** Build the 2~3 cards for a book based on its keywords. */
+/** Build the initial question cards for a book based on its keywords. */
 export function getCardsForBook(book: Book | undefined): CardQuestion[] {
   if (!book) return [];
-  const ov = BOOK_OVERRIDES[book.id];
+  const byKeyword = QUESTION_BANK[book.title];
   return book.keywords.map((keyword, keywordIndex) => {
-    const data = ov?.[keyword] ?? fallbackFor(keyword);
+    const data = byKeyword?.[keyword]?.initial ?? fallbackFor(keyword);
     return {
       id: `${book.id}:k${keywordIndex}`,
       bookId: book.id,
@@ -115,64 +145,48 @@ export function findCard(
 }
 
 /**
- * Follow-up chain keyed by initial card id.
- * Q1(picked) → Q2(L4 심화) → Q3(L5 메타) → star-born.
+ * Get follow-up questions for a (book, keywordIndex). Returned ids match
+ * the convention `${bookId}:k${idx}:f${n}` so they're stable across the
+ * answer page's transcript chain.
  */
-export const followUpQuestions: Record<
-  string,
-  Array<Omit<CardQuestion, "bookId" | "keyword" | "keywordIndex">>
-> = {
-  "b01:k0": [
-    {
-      id: "b01:k0:f1",
-      level: "L4",
-      text: '"권력이 사람을 바꾼다"고 했는데, 권력이 없었다면 나폴레옹은 다르게 살았을까?',
-    },
-    {
-      id: "b01:k0:f2",
-      level: "L5",
-      text: '이 이야기를 우리 학교나 친구 관계에 적용한다면, 비슷한 "나폴레옹"이 있을까?',
-    },
-  ],
-  "b01:k1": [
-    {
-      id: "b01:k1:f1",
-      level: "L4",
-      text: "처음의 약속이 깨질 때, 동물들은 왜 침묵했을까?",
-    },
-    {
-      id: "b01:k1:f2",
-      level: "L5",
-      text: "네가 본 '말이 바뀌는 순간'은 언제였어?",
-    },
-  ],
-  "b01:k2": [
-    {
-      id: "b01:k2:f1",
-      level: "L4",
-      text: "선과 악이 처음부터 정해져 있는 게 아니라면, 무엇이 그것을 만들까?",
-    },
-    {
-      id: "b01:k2:f2",
-      level: "L5",
-      text: "오늘 너의 하루 중 '회색지대'는 어디에 있었어?",
-    },
-  ],
-};
+export function getFollowUpsForCard(
+  book: Book | undefined,
+  keywordIndex: number,
+): FollowUp[] {
+  if (!book) return [];
+  const keyword = book.keywords[keywordIndex];
+  if (!keyword) return [];
+  const bundle = QUESTION_BANK[book.title]?.[keyword];
+  if (!bundle) return [];
+  return bundle.followUps.map((q, i) => ({
+    id: `${book.id}:k${keywordIndex}:f${i + 1}`,
+    level: q.level,
+    text: q.text,
+    category: q.category,
+  }));
+}
 
 /**
- * Demo simulated answers, keyed by question id (initial or follow-up).
- * The answer page auto-types these into the compose box for the demo
- * (see /answer/$bookId/$questionId).
+ * Look up the auto-typed simulated answer for the current active question.
+ * Returns undefined when the book has no demo content (=> no auto-typing).
+ *
+ * Resolution:
+ *   - turnIndex 0 = initial card → simulated[0]
+ *   - turnIndex N (f1, f2, ...) parsed from `:fN` suffix on the id
  */
-export const SIMULATED_ANSWERS: Record<string, string> = {
-  "b01:k0":
-    "나폴레옹은 처음엔 다른 돼지들과 똑같았는데, 점점 자기만 우유랑 사과를 더 먹기 시작했다. 권력을 가지면 사람이 변하는 것 같다. 처음의 마음을 잊는 게 아니라, 잊고 싶어하는 거 같기도.",
-  "b01:k0:f1":
-    "권력 자체가 사람을 만드는 거 같다. 누가 그 자리에 있어도 비슷했을 듯. 나폴레옹이 특별히 나쁜 게 아니라, 그 자리가 특별히 무서운 거.",
-  "b01:k0:f2":
-    "우리 반에도 비슷한 일이 있다. 처음엔 다 같이 정한 규칙이었는데, 누가 반장이 되고 나면 규칙이 슬쩍슬쩍 바뀐다. 그리고 아무도 그게 바뀌었다고 말 안 한다. 평등은 한 번 만든다고 끝이 아니라, 매일 지켜내야 하는 약속이다.",
-};
+export function getSimulatedAnswer(
+  book: Book | undefined,
+  q: Pick<CardQuestion, "id" | "keywordIndex"> | undefined,
+): string | undefined {
+  if (!book || !q) return undefined;
+  const keyword = book.keywords[q.keywordIndex];
+  if (!keyword) return undefined;
+  const bundle = QUESTION_BANK[book.title]?.[keyword];
+  if (!bundle) return undefined;
+  const m = /:f(\d+)$/.exec(q.id);
+  const turnIdx = m ? Number(m[1]) : 0;
+  return bundle.simulated[turnIdx];
+}
 
 export const LEVEL_META: Record<
   QuestionLevel,

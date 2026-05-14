@@ -33,7 +33,6 @@ import {
 import { BookSheet } from "./BookSheet";
 import {
   buildUniverseGraph,
-  bookCompletion,
   UNIVERSE_VIEWBOX,
 } from "@/lib/universe-graph";
 import type { Book } from "@/lib/types";
@@ -86,14 +85,6 @@ export function UniverseView({ mode = "explore", starOpacity = 0.75 }: Props) {
   const hasSelection = selection.kind !== "none";
 
   const graph = useMemo(() => buildUniverseGraph(books), [books]);
-
-  // The most recently registered book gets the bright blue "today's star" look
-  const currentStar = useMemo(() => {
-    if (books.length === 0) return null;
-    return [...books].sort((a, b) =>
-      a.registeredAt < b.registeredAt ? 1 : -1,
-    )[0];
-  }, [books]);
 
   // ESC always returns to overview
   useEffect(() => {
@@ -213,10 +204,10 @@ export function UniverseView({ mode = "explore", starOpacity = 0.75 }: Props) {
           onPick={selectKeyword}
         />
 
-        {/* L4 — stars (clickable) */}
+        {/* L4 — stars (clickable). Every star = a fully-read book; there is
+            no "unread" or "current" visual variant. */}
         <StarLayer
           stars={graph.stars}
-          currentStarId={currentStar?.id ?? null}
           highlightedSet={highlightedStarIds}
           hasSelection={hasSelection}
           opacity={starOpacity}
@@ -456,14 +447,12 @@ function HubLayer({
 
 function StarLayer({
   stars,
-  currentStarId,
   highlightedSet,
   hasSelection,
   opacity,
   onPick,
 }: {
   stars: Graph["stars"];
-  currentStarId: string | null;
   highlightedSet: Set<string>;
   hasSelection: boolean;
   opacity: number;
@@ -480,7 +469,6 @@ function StarLayer({
         <Star
           key={s.id}
           star={s}
-          isCurrent={s.id === currentStarId}
           isHighlighted={highlightedSet.has(s.id)}
           hasSelection={hasSelection}
           onPick={onPick}
@@ -491,60 +479,28 @@ function StarLayer({
 }
 
 // ─── Single star ─────────────────────────────────────────────────────
+//
+// One uniform style for all stars: every book on the map is a fully-read
+// book. The only visual states are:
+//   - normal       (default, when nothing is selected, or this star is the focus)
+//   - highlighted  (this star or its keyword is currently selected)
+//   - dimmed       (something else is selected; we step back so it can shine)
 
 function Star({
   star,
-  isCurrent,
   isHighlighted,
   hasSelection,
   onPick,
 }: {
   star: Graph["stars"][number];
-  isCurrent: boolean;
   isHighlighted: boolean;
   hasSelection: boolean;
   onPick: (bookId: string) => void;
 }) {
-  const tier = bookCompletion(star.book);
-  const dim = hasSelection && !isHighlighted && !isCurrent;
-  const isLit = tier >= 1;
+  const dim = hasSelection && !isHighlighted;
 
-  // Size — tier 0 is markedly smaller, tier 3 noticeably bigger
-  const r = isCurrent ? 5.5 : tier === 3 ? 4 : tier >= 1 ? 3 : 2;
-  // Tier 0 still gets a faint halo so users see it's a real book, not decor
-  const haloR = isCurrent ? 22 : tier === 3 ? 18 : tier >= 1 ? 11 : 6;
-
-  const fill = isCurrent
-    ? "#E8F0FF"
-    : isHighlighted
-    ? "#FFFFFF"
-    : isLit
-    ? "#F4F4ED"
-    : "#5A6B8E";
-
-  const baseOp = isCurrent
-    ? 1
-    : dim
-    ? 0.12
-    : isHighlighted
-    ? 1
-    : tier === 0
-    ? 0.42
-    : tier === 3
-    ? 0.95
-    : 0.72;
-
-  const haloFill = isCurrent
-    ? "url(#starGlowBlue)"
-    : tier === 3
-    ? "url(#starGlowFull)"
-    : "url(#starGlowWhite)";
-
-  const showHalo = haloR > 0 && !dim;
-  const spikes = (tier === 3 || isCurrent) && !dim;
-  const spikeLen = isCurrent ? 14 : 11;
-  const spikeColor = isCurrent ? "#B8D0FF" : "#F4F4ED";
-  const shimmer = isLit && !isCurrent;
+  const baseOp = isHighlighted ? 1 : dim ? 0.14 : 0.78;
+  const fill = isHighlighted ? "#FFFFFF" : "#F4F4ED";
 
   return (
     <g
@@ -554,55 +510,29 @@ function Star({
       }}
       style={{ cursor: "pointer" }}
     >
-      {showHalo && (
+      {/* Halo */}
+      {!dim && (
         <circle
           cx={star.x}
           cy={star.y}
-          r={haloR}
-          fill={haloFill}
-          className={isCurrent || tier === 3 ? "star-halo-breathe" : undefined}
-          style={{
-            animationDelay:
-              isCurrent || tier === 3 ? `${twinkleDelay(star.id)}s` : undefined,
-          }}
+          r={isHighlighted ? 16 : 11}
+          fill="url(#starGlowWhite)"
         />
       )}
-      {spikes && (
-        <g opacity={isCurrent ? 0.7 : 0.5} style={{ mixBlendMode: "screen" }}>
-          <line
-            x1={star.x - spikeLen}
-            y1={star.y}
-            x2={star.x + spikeLen}
-            y2={star.y}
-            stroke={spikeColor}
-            strokeWidth={0.6}
-            strokeLinecap="round"
-          />
-          <line
-            x1={star.x}
-            y1={star.y - spikeLen}
-            x2={star.x}
-            y2={star.y + spikeLen}
-            stroke={spikeColor}
-            strokeWidth={0.6}
-            strokeLinecap="round"
-          />
-        </g>
-      )}
-      {/* Invisible hit area larger than the visible dot */}
+      {/* Larger invisible hit area than the visible dot */}
       <circle cx={star.x} cy={star.y} r={14} fill="transparent" />
       <circle
         cx={star.x}
         cy={star.y}
-        r={r}
+        r={isHighlighted ? 4 : 3}
         fill={fill}
         opacity={baseOp}
-        className={isCurrent ? "pulse-glow" : shimmer ? "star-shimmer" : undefined}
+        className={dim ? undefined : "star-shimmer"}
         style={{
-          animationDelay: shimmer ? `${twinkleDelay(star.id)}s` : undefined,
-          ...(shimmer
-            ? ({ ["--star-base-op" as never]: baseOp } as React.CSSProperties)
-            : {}),
+          animationDelay: dim ? undefined : `${twinkleDelay(star.id)}s`,
+          ...(dim
+            ? {}
+            : ({ ["--star-base-op" as never]: baseOp } as React.CSSProperties)),
           transition: "opacity 600ms var(--ease-cosmos)",
         }}
       />
