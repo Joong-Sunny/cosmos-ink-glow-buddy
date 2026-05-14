@@ -24,31 +24,19 @@ type Override = Omit<CardQuestion, "id" | "bookId" | "keyword" | "keywordIndex">
 // for any (book, keyword) not listed here.
 const BOOK_OVERRIDES: Record<string, Record<string, Override>> = {
   b01: {
-    "권력": {
+    "사회·정의": {
       level: "L3",
       text: "나폴레옹은 왜 다른 돼지들과 다르게 행동했을까?",
       category: "inference",
     },
-    "배신": {
+    "용기·리더십": {
       level: "L2",
       text: "동물들은 왜 처음에 반란에 찬성했어?",
       category: "plot",
     },
-    "선과 악": {
+    "철학": {
       level: "L4",
       text: "작가는 정말 혁명에 반대했을까?",
-      category: "critical",
-    },
-  },
-  b03: {
-    "사랑": {
-      level: "L3",
-      text: "아빠는 왜 자기 인생을 모두 아이에게 쏟았을까?",
-      category: "inference",
-    },
-    "희생": {
-      level: "L4",
-      text: "사랑은 항상 희생을 요구하는 걸까?",
       category: "critical",
     },
   },

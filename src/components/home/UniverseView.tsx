@@ -38,15 +38,15 @@ type Planet = {
 
 /** Top-level "planet" categories that group keyword hubs. */
 const PLANETS: Planet[] = [
-  // 권력(720,320) · 정의(360,640) · 선과 악(320,220)
-  { id: "society", label: "인간과 사회", kind: "POLITICS / ETHICS",
-    cx: 470, cy: 380, r: 320, color: "#C9543B" },
-  // 정체성(760,640) · 공감(1180,260) · 고독(1000,540)
-  { id: "self", label: "나라는 존재", kind: "IDENTITY",
-    cx: 1000, cy: 480, r: 320, color: "#8FB8FF" },
-  // 자유(1100,660) · 선택(600,760) · 통제(1000,760)
-  { id: "freedom", label: "자유와 책임", kind: "FREEDOM / CHOICE",
-    cx: 900, cy: 760, r: 240, color: "#E8B547" },
+  // 성장(320,240) · 가족·우정(520,320) · 공감·다양성(240,460) · 철학(480,540)
+  { id: "self", label: "나와 성장", kind: "GROWTH / IDENTITY",
+    cx: 370, cy: 400, r: 300, color: "#8FB8FF" },
+  // 사회·정의(1100,280) · 역사(1280,460) · 용기·리더십(1080,600) · 경제(1240,760)
+  { id: "society", label: "세상과 마주", kind: "SOCIETY / HISTORY",
+    cx: 1170, cy: 520, r: 290, color: "#C9543B" },
+  // 상상력(720,160) · 예술(900,240) · 과학·자연(780,700)
+  { id: "discover", label: "상상과 발견", kind: "IMAGINATION / SCIENCE",
+    cx: 800, cy: 420, r: 330, color: "#E8B547" },
 ];
 
 function useAnimatedViewBox(target: [number, number, number, number]) {
@@ -179,55 +179,6 @@ export function UniverseView({
     : null;
 
   const isLone = books.length === 1;
-
-  const vb = useAnimatedViewBox(targetVb);
-
-  // ESC clears focus & active
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setFocusStarId(null);
-        onActiveChange(null);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onActiveChange]);
-
-  // What links / stars are highlighted right now?
-  // - active keyword: all links with that keyword
-  // - focus star: all links from that star
-  const highlightedLinkSet = useMemo(() => {
-    const set = new Set<string>();
-    if (focusStarId) {
-      for (const l of graph.links) {
-        if (l.source === focusStarId) set.add(`${l.source}->${l.target}`);
-      }
-    }
-    if (active) {
-      for (const l of graph.links) {
-        if (l.keyword === active) set.add(`${l.source}->${l.target}`);
-      }
-    }
-    return set;
-  }, [focusStarId, active, graph]);
-
-  const highlightedStarIds = useMemo(() => {
-    const set = new Set<string>();
-    if (focusStarId) set.add(focusStarId);
-    if (active) {
-      const hub = graph.hubByKeyword[active];
-      if (hub) for (const id of graph.hubStars[hub.id] ?? []) set.add(id);
-    }
-    return set;
-  }, [focusStarId, active, graph]);
-
-  const linesVisible = mode === "explore";
-  const hasSelection = !!focusStarId || !!active;
-
-  const openBook: Book | null = openBookId
-    ? books.find((b) => b.id === openBookId) ?? null
-    : null;
 
   return (
     <>

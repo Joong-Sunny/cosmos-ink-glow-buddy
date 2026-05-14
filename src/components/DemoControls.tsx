@@ -23,7 +23,7 @@ const STOPS: Stop[] = [
   {
     to: "/constellation/$keyword",
     label: "별자리",
-    params: { keyword: "권력" },
+    params: { keyword: "사회·정의" },
   },
   { to: "/worldview-new", label: "카드" },
   { to: "/worldview", label: "도감" },

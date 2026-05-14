@@ -28,8 +28,8 @@ function Page() {
         booksCount: 5,
         starsCount: 12,
         issuedAt: new Date().toISOString(),
-        relatedKeyword: "권력",
-        relatedBookIds: ["b01", "b04", "b10", "b15", "b16"],
+        relatedKeyword: "사회·정의",
+        relatedBookIds: ["b01", "b03", "b11", "b23", "b25"],
       });
     }
     setTimeout(() => navigate({ to: "/worldview" }), 350);

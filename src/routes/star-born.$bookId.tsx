@@ -10,7 +10,7 @@ function Page() {
 
   useEffect(() => {
     const t = window.setTimeout(() => {
-      navigate({ to: "/constellation/$keyword", params: { keyword: "권력" } });
+      navigate({ to: "/constellation/$keyword", params: { keyword: "사회·정의" } });
     }, 3200);
     return () => window.clearTimeout(t);
   }, [navigate]);
@@ -75,7 +75,7 @@ function Page() {
 
       <button
         onClick={() =>
-          navigate({ to: "/constellation/$keyword", params: { keyword: "권력" } })
+          navigate({ to: "/constellation/$keyword", params: { keyword: "사회·정의" } })
         }
         className="mt-12 rounded-full px-7 py-3 transition-transform active:scale-[0.98]"
         style={{

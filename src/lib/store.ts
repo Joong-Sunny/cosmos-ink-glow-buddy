@@ -104,7 +104,7 @@ export const useUniverseStore = create<State & Actions>()(
       reset: () => set(initial),
     }),
     {
-      name: "book-universe-v2",
+      name: "book-universe-v3",
       storage: createJSONStorage(() =>
         typeof window !== "undefined" ? window.localStorage : (undefined as never),
       ),

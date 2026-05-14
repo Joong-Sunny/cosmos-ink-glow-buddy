@@ -1,4 +1,6 @@
 import type { Book, Constellation, StarPosition, WorldviewCard } from "./types";
+import { CATEGORIES, type Category, coverColorFor } from "./categories";
+import { findBookByTitle } from "./book-database";
 
 // Deterministic PRNG (mulberry32) for stable star coordinates
 function mulberry32(seed: number) {
@@ -10,43 +12,95 @@ function mulberry32(seed: number) {
   };
 }
 
-type SeedBook = Omit<Book, "id" | "registeredAt" | "starState"> & {
+type SeedSpec = {
   id: string;
-  starState?: Book["starState"];
+  /** CSV title; if undefined the entry below provides explicit fields. */
+  title: string;
+  /** Used only when the title isn't in books.csv (e.g. 동물농장). */
+  fallbackAuthor?: string;
+  fallbackCategories?: Category[];
+  /** Optional override for cover color. */
+  coverColor?: string;
 };
 
-const RAW_BOOKS: SeedBook[] = [
-  { id: "b01", title: "동물농장", author: "George Orwell", coverColor: "#C9543B", keywords: ["권력", "배신", "선과 악"] },
-  { id: "b02", title: "아몬드", author: "손원평", coverColor: "#6FA686", keywords: ["공감", "정체성"] },
-  { id: "b03", title: "가시고기", author: "조창인", coverColor: "#5A7AAB", keywords: ["사랑", "희생"] },
-  { id: "b04", title: "우리들의 일그러진 영웅", author: "이문열", coverColor: "#8A4D3B", keywords: ["권력", "비겁"] },
-  { id: "b05", title: "기억 전달자", author: "로이스 라우리", coverColor: "#3D5C7A", keywords: ["자유", "통제"] },
-  { id: "b06", title: "죽이고 싶은 아이", author: "이꽃님", coverColor: "#7A3D5C", keywords: ["진실", "우정"] },
-  { id: "b07", title: "데미안", author: "헤르만 헤세", coverColor: "#4A4A6E", keywords: ["정체성", "이중성"] },
-  { id: "b08", title: "앵무새 죽이기", author: "하퍼 리", coverColor: "#8A6C3B", keywords: ["정의", "편견"] },
-  { id: "b09", title: "위저드 베이커리", author: "구병모", coverColor: "#6E4A5C", keywords: ["선택", "책임"] },
-  { id: "b10", title: "스노볼", author: "박소영", coverColor: "#3B6E7A", keywords: ["권력", "미디어"] },
-  { id: "b11", title: "완득이", author: "김려령", coverColor: "#6B8E4E", keywords: ["정체성", "공감"] },
-  { id: "b12", title: "두근두근 내 인생", author: "김애란", coverColor: "#A36B4A", keywords: ["사랑", "정체성"] },
-  { id: "b13", title: "체리새우: 비밀글입니다", author: "황영미", coverColor: "#9A4763", keywords: ["우정", "정체성"] },
-  { id: "b14", title: "유진과 유진", author: "이금이", coverColor: "#4E6E8A", keywords: ["기억", "공감"] },
-  { id: "b15", title: "1984", author: "George Orwell", coverColor: "#2E2E4A", keywords: ["권력", "자유"] },
-  { id: "b16", title: "파리대왕", author: "William Golding", coverColor: "#8A5A2E", keywords: ["선과 악", "권력"] },
-  { id: "b17", title: "호밀밭의 파수꾼", author: "J.D. Salinger", coverColor: "#A33B3B", keywords: ["정체성", "고독"] },
-  { id: "b18", title: "어린 왕자", author: "Saint-Exupéry", coverColor: "#D4A14A", keywords: ["사랑", "공감"] },
-  { id: "b19", title: "수레바퀴 아래서", author: "헤르만 헤세", coverColor: "#5C4A3B", keywords: ["자유", "통제"] },
-  { id: "b20", title: "젊은 베르테르의 슬픔", author: "Goethe", coverColor: "#7A3B4A", keywords: ["사랑", "정체성"] },
-  { id: "b21", title: "변신", author: "Franz Kafka", coverColor: "#3B3B3B", keywords: ["정체성", "고독"] },
-  { id: "b22", title: "이방인", author: "Albert Camus", coverColor: "#6B6B6B", keywords: ["정의", "정체성"] },
-  { id: "b23", title: "노인과 바다", author: "Hemingway", coverColor: "#4A6B7A", keywords: ["희생", "자유"] },
-  { id: "b24", title: "모모", author: "Michael Ende", coverColor: "#8A6E3B", keywords: ["공감", "자유"] },
-  { id: "b25", title: "사피엔스", author: "유발 하라리", coverColor: "#A38A3B", keywords: ["정체성", "권력"] },
-  { id: "b26", title: "총, 균, 쇠", author: "Jared Diamond", coverColor: "#5C7A4A", keywords: ["권력", "정의"] },
-  { id: "b27", title: "정의란 무엇인가", author: "마이클 샌델", coverColor: "#3B5C8A", keywords: ["정의", "선과 악"] },
-  { id: "b28", title: "코스모스", author: "Carl Sagan", coverColor: "#1F2E5A", keywords: ["자유", "정체성"] },
-  { id: "b29", title: "이기적 유전자", author: "Richard Dawkins", coverColor: "#6E3B5C", keywords: ["선과 악", "정체성"] },
-  { id: "b30", title: "총균쇠 이후의 세계", author: "???", coverColor: "#4A5C6E", keywords: ["정의", "권력"] },
+/**
+ * 데모용 이미-읽은 책 목록.
+ * 11개 카테고리가 각각 3~5권씩 커버되도록 고른다.
+ * (한 권이 여러 카테고리에 속하므로 총 권수는 약 37권)
+ *
+ * b01(동물농장)은 사용자가 "방금 등록한 책"으로 시연에 쓰는 책이라
+ * books.csv에는 없지만 시드에는 포함시켜 별자리 효과를 만든다.
+ */
+const SEED_SPECS: SeedSpec[] = [
+  // b01 — 데모 진입 책 (방금 등록된 별)
+  {
+    id: "b01",
+    title: "동물농장",
+    fallbackAuthor: "George Orwell",
+    fallbackCategories: ["사회·정의", "용기·리더십", "철학"],
+    coverColor: "#C9543B",
+  },
+  // 이하 books.csv에서 가져온 이미-읽은 책들
+  { id: "b02", title: "긴긴밤" },
+  { id: "b03", title: "자전거 도둑" },
+  { id: "b04", title: "마당을 나온 암탉" },
+  { id: "b05", title: "열두 살에 부자가 된 키라" },
+  { id: "b06", title: "어린 왕자" },
+  { id: "b07", title: "초정리 편지" },
+  { id: "b08", title: "괭이부리말 아이들" },
+  { id: "b09", title: "샬롯의 거미줄" },
+  { id: "b10", title: "5번 레인" },
+  { id: "b11", title: "우리들의 일그러진 영웅" },
+  { id: "b12", title: "소나기" },
+  { id: "b13", title: "비밀의 화원" },
+  { id: "b14", title: "아몬드" },
+  { id: "b15", title: "창가의 토토" },
+  { id: "b16", title: "삼국유사" },
+  { id: "b17", title: "종의 기원 (어린이용)" },
+  { id: "b18", title: "목민심서 (어린이용)" },
+  { id: "b19", title: "열하일기 (어린이용)" },
+  { id: "b20", title: "톨스토이 단편선" },
+  { id: "b21", title: "이상한 나라의 앨리스" },
+  { id: "b22", title: "처음 읽는 삼국지" },
+  { id: "b23", title: "정의란 무엇인가 (어린이)" },
+  { id: "b24", title: "연금술사" },
+  { id: "b25", title: "침묵의 봄 (어린이용)" },
+  { id: "b26", title: "사자와 마녀와 옷장" },
+  { id: "b27", title: "난중일기 (어린이용)" },
+  { id: "b28", title: "행복한 청소부" },
+  { id: "b29", title: "강아지똥" },
+  { id: "b30", title: "몽실 언니" },
+  { id: "b31", title: "너도 하늘말나리야" },
+  { id: "b32", title: "책과 노니는 집" },
+  { id: "b33", title: "양반전" },
+  { id: "b34", title: "허생전" },
+  { id: "b35", title: "독 짓는 늙은이" },
+  { id: "b36", title: "수난이대" },
+  { id: "b37", title: "후추의 안개 공장" },
+  { id: "b38", title: "알로하 나의 엄마들" },
 ];
+
+function resolveSeed(spec: SeedSpec): {
+  id: string;
+  title: string;
+  author: string;
+  keywords: Category[];
+  coverColor: string;
+} {
+  const csv = findBookByTitle(spec.title);
+  const author = csv?.author ?? spec.fallbackAuthor ?? "작자 미상";
+  const keywords = csv?.categories?.length
+    ? csv.categories
+    : spec.fallbackCategories ?? [];
+  const coverColor = spec.coverColor ?? coverColorFor(keywords);
+  return {
+    id: spec.id,
+    title: spec.title,
+    author,
+    keywords,
+    coverColor,
+  };
+}
 
 export function generateStarPositions(books: { id: string }[]): Record<string, StarPosition> {
   const rng = mulberry32(20260514);
@@ -76,22 +130,28 @@ function seedCompletion(idx: number, total: number): number[] {
   return []; // dim
 }
 
-export const SEED_BOOKS: Book[] = RAW_BOOKS.map((b, i) => {
+const RESOLVED = SEED_SPECS.map(resolveSeed);
+
+export const SEED_BOOKS: Book[] = RESOLVED.map((b, i) => {
   const answered = seedCompletion(i, b.keywords.length);
   return {
-    ...b,
-    starState: "lit",
+    id: b.id,
+    title: b.title,
+    author: b.author,
+    coverColor: b.coverColor,
+    keywords: b.keywords,
+    starState: "lit" as const,
     answeredKeywordIndices: answered,
     questionsAnswered: answered.length,
-    registeredAt: new Date(NOW - (RAW_BOOKS.length - i) * 86400000).toISOString(),
+    registeredAt: new Date(NOW - (RESOLVED.length - i) * 86400000).toISOString(),
   };
 });
 
 export const SEED_STAR_POSITIONS = generateStarPositions(SEED_BOOKS);
 
-export const SEED_KEYWORDS = ["권력", "선과 악", "공감", "자유", "정체성", "정의"] as const;
+export const SEED_KEYWORDS = CATEGORIES;
 
-export const SEED_CONSTELLATIONS: Constellation[] = SEED_KEYWORDS.map((keyword) => {
+export const SEED_CONSTELLATIONS: Constellation[] = CATEGORIES.map((keyword) => {
   const matches = SEED_BOOKS.filter((b) => b.keywords.includes(keyword));
   return {
     keyword,
@@ -99,6 +159,18 @@ export const SEED_CONSTELLATIONS: Constellation[] = SEED_KEYWORDS.map((keyword) 
     centerBookId: matches[matches.length - 1]?.id ?? matches[0]?.id ?? "",
   };
 });
+
+/** "사회·정의" 카테고리의 대표 4권. */
+const JUSTICE_BOOK_IDS = SEED_BOOKS.filter((b) =>
+  b.keywords.includes("사회·정의"),
+)
+  .slice(0, 4)
+  .map((b) => b.id);
+
+/** "철학" 카테고리의 대표 4권. */
+const PHILOSOPHY_BOOK_IDS = SEED_BOOKS.filter((b) => b.keywords.includes("철학"))
+  .slice(0, 4)
+  .map((b) => b.id);
 
 export const SEED_WORLDVIEW_CARDS: WorldviewCard[] = [
   {
@@ -108,11 +180,11 @@ export const SEED_WORLDVIEW_CARDS: WorldviewCard[] = [
     nameEn: "THE SEEKER",
     arcanumType: "seeker",
     quote: "정의는 다수의 편이 아니라 진실의 편이다.",
-    booksCount: 4,
-    starsCount: 8,
+    booksCount: JUSTICE_BOOK_IDS.length,
+    starsCount: JUSTICE_BOOK_IDS.length * 2,
     issuedAt: new Date(NOW - 7 * 86400000).toISOString(),
-    relatedKeyword: "정의",
-    relatedBookIds: ["b08", "b22", "b26", "b27"],
+    relatedKeyword: "사회·정의",
+    relatedBookIds: JUSTICE_BOOK_IDS,
   },
   {
     id: "wc-ii",
@@ -121,10 +193,10 @@ export const SEED_WORLDVIEW_CARDS: WorldviewCard[] = [
     nameEn: "THE DOUBT",
     arcanumType: "doubt",
     quote: "당연하다고 믿었던 것 뒤에는 늘 묻지 않은 질문이 있다.",
-    booksCount: 4,
-    starsCount: 10,
+    booksCount: PHILOSOPHY_BOOK_IDS.length,
+    starsCount: PHILOSOPHY_BOOK_IDS.length * 2 + 2,
     issuedAt: new Date(NOW - 2 * 86400000).toISOString(),
-    relatedKeyword: "권력",
-    relatedBookIds: ["b01", "b04", "b10", "b15"],
+    relatedKeyword: "철학",
+    relatedBookIds: PHILOSOPHY_BOOK_IDS,
   },
 ];

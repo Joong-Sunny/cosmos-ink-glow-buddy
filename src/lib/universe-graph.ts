@@ -8,6 +8,7 @@ import {
   forceY,
 } from "d3-force";
 import type { Book } from "./types";
+import { CATEGORY_ANCHORS } from "./categories";
 
 export type StarNode = {
   id: string;
@@ -82,28 +83,7 @@ const HEIGHT = 900;
 
 // Anchor each keyword to a stable point on the canvas so the layout is
 // recognisable across re-renders even if book set changes slightly.
-const HUB_ANCHORS: Record<string, { x: number; y: number }> = {
-  "권력":   { x: 720, y: 320 },
-  "선과 악": { x: 320, y: 220 },
-  "공감":   { x: 1180, y: 260 },
-  "자유":   { x: 1100, y: 660 },
-  "정체성": { x: 760, y: 640 },
-  "정의":   { x: 360, y: 640 },
-  "배신":   { x: 540, y: 160 },
-  "비겁":   { x: 540, y: 460 },
-  "사랑":   { x: 1280, y: 460 },
-  "희생":   { x: 1320, y: 760 },
-  "통제":   { x: 1000, y: 760 },
-  "진실":   { x: 200, y: 460 },
-  "우정":   { x: 240, y: 780 },
-  "이중성": { x: 880, y: 480 },
-  "선택":   { x: 600, y: 760 },
-  "책임":   { x: 460, y: 800 },
-  "미디어": { x: 920, y: 200 },
-  "편견":   { x: 200, y: 320 },
-  "고독":   { x: 1000, y: 540 },
-  "기억":   { x: 1240, y: 580 },
-};
+const HUB_ANCHORS: Record<string, { x: number; y: number }> = CATEGORY_ANCHORS;
 
 function anchorFor(keyword: string, idx: number): { x: number; y: number } {
   if (HUB_ANCHORS[keyword]) return HUB_ANCHORS[keyword];

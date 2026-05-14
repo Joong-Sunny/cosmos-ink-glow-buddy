@@ -9,7 +9,7 @@ export const Route = createFileRoute("/search")({
   component: Page,
 });
 
-const CHIPS = ["권력", "정의", "공감", "자유", "정체성"];
+const CHIPS = ["사회·정의", "철학", "성장", "공감·다양성", "역사"];
 
 type ThoughtCard = {
   bookId: string;
@@ -27,25 +27,25 @@ const POWER_THOUGHTS: ThoughtCard[] = [
       "나폴레옹은 처음엔 다른 돼지들과 똑같았는데, 점점 자기만 우유랑 사과를 더 먹기 시작했다. 권력은 가지는 게 아니라, 익숙해지는 것 같다.",
   },
   {
-    bookId: "b15",
-    bookTitle: "1984",
+    bookId: "b11",
+    bookTitle: "우리들의 일그러진 영웅",
     date: "2026.04.22",
     excerpt:
-      "빅브라더가 무서운 건 보고 있다는 사실보다, 사람들이 그걸 당연하게 받아들인다는 거다. 감시는 카메라가 아니라 익숙함에서 시작된다.",
+      "엄석대가 무서운 건 그 아이가 강해서가 아니라, 다른 아이들이 그 권력을 당연하게 받아들였기 때문이다. 침묵은 그 자체로 동의가 된다.",
   },
   {
-    bookId: "b10",
-    bookTitle: "스노볼",
+    bookId: "b03",
+    bookTitle: "자전거 도둑",
     date: "2026.04.10",
     excerpt:
-      "등급이 매겨지는 사회에서 누가 가장 손해를 볼까. 등급이 낮은 사람들이 아니라 등급 자체를 믿는 사람들이 가장 자유를 잃는다.",
+      "수남이가 흔들렸던 건 자전거가 아니라 양심이었다. 도시는 정의를 묻지 않는 곳이어서, 도덕은 혼자 짊어져야 할 짐이 된다.",
   },
   {
-    bookId: "b05",
-    bookTitle: "기억 전달자",
+    bookId: "b23",
+    bookTitle: "정의란 무엇인가",
     date: "2026.03.28",
     excerpt:
-      "기억이 없으면 슬픔도 없지만, 사랑도 없다. 평화는 무엇을 포기해야 얻어지는 걸까. 무감각은 평화가 아니다.",
+      "정의는 다수의 편이 아니라 진실의 편이라고 했다. 그러면 다수가 자주 틀린다는 뜻일까. 옳음은 늘 외로운 자리에 있다.",
   },
 ];
 
@@ -107,7 +107,7 @@ function Page() {
     submit(kw);
   };
 
-  const isPowerSearch = submitted === "권력";
+  const isPowerSearch = submitted === "사회·정의";
 
   return (
     <main
