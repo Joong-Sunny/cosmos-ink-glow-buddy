@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WorldviewNewRouteImport } from './routes/worldview-new'
 import { Route as WorldviewRouteImport } from './routes/worldview'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -21,14 +20,8 @@ import { Route as StarBornBookIdRouteImport } from './routes/star-born.$bookId'
 import { Route as QuestionsBookIdRouteImport } from './routes/questions.$bookId'
 import { Route as ConstellationKeywordRouteImport } from './routes/constellation.$keyword'
 import { Route as AnalyzingBookIdRouteImport } from './routes/analyzing.$bookId'
-import { Route as QuestionsRouteImport } from './routes/questions.'
 import { Route as AnswerBookIdQuestionIdRouteImport } from './routes/answer.$bookId.$questionId'
 
-const WorldviewNewRoute = WorldviewNewRouteImport.update({
-  id: '/worldview-new',
-  path: '/worldview-new',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const WorldviewRoute = WorldviewRouteImport.update({
   id: '/worldview',
   path: '/worldview',
@@ -84,11 +77,6 @@ const AnalyzingBookIdRoute = AnalyzingBookIdRouteImport.update({
   path: '/analyzing/$bookId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QuestionsRoute = QuestionsRouteImport.update({
-  id: '/questions/',
-  path: '/questions/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AnswerBookIdQuestionIdRoute = AnswerBookIdQuestionIdRouteImport.update({
   id: '/answer/$bookId/$questionId',
   path: '/answer/$bookId/$questionId',
@@ -101,8 +89,6 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/worldview': typeof WorldviewRouteWithChildren
-  '/worldview-new': typeof WorldviewNewRoute
-  '/questions/': typeof QuestionsRoute
   '/analyzing/$bookId': typeof AnalyzingBookIdRoute
   '/constellation/$keyword': typeof ConstellationKeywordRoute
   '/questions/$bookId': typeof QuestionsBookIdRoute
@@ -116,8 +102,6 @@ export interface FileRoutesByTo {
   '/closing': typeof ClosingRoute
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
-  '/worldview-new': typeof WorldviewNewRoute
-  '/questions': typeof QuestionsRoute
   '/analyzing/$bookId': typeof AnalyzingBookIdRoute
   '/constellation/$keyword': typeof ConstellationKeywordRoute
   '/questions/$bookId': typeof QuestionsBookIdRoute
@@ -133,8 +117,6 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/worldview': typeof WorldviewRouteWithChildren
-  '/worldview-new': typeof WorldviewNewRoute
-  '/questions/': typeof QuestionsRoute
   '/analyzing/$bookId': typeof AnalyzingBookIdRoute
   '/constellation/$keyword': typeof ConstellationKeywordRoute
   '/questions/$bookId': typeof QuestionsBookIdRoute
@@ -151,8 +133,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/search'
     | '/worldview'
-    | '/worldview-new'
-    | '/questions/'
     | '/analyzing/$bookId'
     | '/constellation/$keyword'
     | '/questions/$bookId'
@@ -166,8 +146,6 @@ export interface FileRouteTypes {
     | '/closing'
     | '/register'
     | '/search'
-    | '/worldview-new'
-    | '/questions'
     | '/analyzing/$bookId'
     | '/constellation/$keyword'
     | '/questions/$bookId'
@@ -182,8 +160,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/search'
     | '/worldview'
-    | '/worldview-new'
-    | '/questions/'
     | '/analyzing/$bookId'
     | '/constellation/$keyword'
     | '/questions/$bookId'
@@ -199,8 +175,6 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   SearchRoute: typeof SearchRoute
   WorldviewRoute: typeof WorldviewRouteWithChildren
-  WorldviewNewRoute: typeof WorldviewNewRoute
-  QuestionsRoute: typeof QuestionsRoute
   AnalyzingBookIdRoute: typeof AnalyzingBookIdRoute
   ConstellationKeywordRoute: typeof ConstellationKeywordRoute
   QuestionsBookIdRoute: typeof QuestionsBookIdRoute
@@ -210,13 +184,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/worldview-new': {
-      id: '/worldview-new'
-      path: '/worldview-new'
-      fullPath: '/worldview-new'
-      preLoaderRoute: typeof WorldviewNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/worldview': {
       id: '/worldview'
       path: '/worldview'
@@ -294,13 +261,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyzingBookIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/questions/': {
-      id: '/questions/'
-      path: '/questions'
-      fullPath: '/questions/'
-      preLoaderRoute: typeof QuestionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/answer/$bookId/$questionId': {
       id: '/answer/$bookId/$questionId'
       path: '/answer/$bookId/$questionId'
@@ -331,8 +291,6 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   SearchRoute: SearchRoute,
   WorldviewRoute: WorldviewRouteWithChildren,
-  WorldviewNewRoute: WorldviewNewRoute,
-  QuestionsRoute: QuestionsRoute,
   AnalyzingBookIdRoute: AnalyzingBookIdRoute,
   ConstellationKeywordRoute: ConstellationKeywordRoute,
   QuestionsBookIdRoute: QuestionsBookIdRoute,
@@ -342,3 +300,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
