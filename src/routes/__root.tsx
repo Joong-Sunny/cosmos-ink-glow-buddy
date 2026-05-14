@@ -9,6 +9,9 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { StarField } from "@/components/StarField";
+import { DemoControls } from "@/components/DemoControls";
+import { MinScreenGuard } from "@/components/layout/MinScreenGuard";
 
 function NotFoundComponent() {
   return (
@@ -72,14 +75,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "반짝북짝 · The Book Universe" },
+      { name: "description", content: "청소년 AI 독서 플랫폼 · 별을 모으고 별자리를 잇다" },
+      { name: "author", content: "반짝북짝" },
+      { property: "og:title", content: "반짝북짝 · The Book Universe" },
+      { property: "og:description", content: "청소년 AI 독서 플랫폼 · 별을 모으고 별자리를 잇다" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "반짝북짝 · The Book Universe" },
+      { name: "twitter:description", content: "청소년 AI 독서 플랫폼 · 별을 모으고 별자리를 잇다" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8add6a79-0510-4b34-9da7-bd2a9b49c951/id-preview-d1653650--d9e2d1da-a298-4232-aa4e-baebb30cc35a.lovable.app-1778726496965.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8add6a79-0510-4b34-9da7-bd2a9b49c951/id-preview-d1653650--d9e2d1da-a298-4232-aa4e-baebb30cc35a.lovable.app-1778726496965.png" },
     ],
     links: [
       {
@@ -113,7 +119,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <StarField />
       <Outlet />
+      <DemoControls />
+      <MinScreenGuard />
     </QueryClientProvider>
   );
 }

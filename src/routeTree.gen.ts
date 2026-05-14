@@ -9,38 +9,242 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorldviewNewRouteImport } from './routes/worldview-new'
+import { Route as WorldviewRouteImport } from './routes/worldview'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ClosingRouteImport } from './routes/closing'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorldviewIndexRouteImport } from './routes/worldview.index'
+import { Route as WorldviewCardIdRouteImport } from './routes/worldview.$cardId'
+import { Route as StarBornBookIdRouteImport } from './routes/star-born.$bookId'
+import { Route as QuestionsBookIdRouteImport } from './routes/questions.$bookId'
+import { Route as ConstellationKeywordRouteImport } from './routes/constellation.$keyword'
+import { Route as AnalyzingBookIdRouteImport } from './routes/analyzing.$bookId'
+import { Route as QuestionsRouteImport } from './routes/questions.'
+import { Route as AnswerBookIdQuestionIdRouteImport } from './routes/answer.$bookId.$questionId'
 
+const WorldviewNewRoute = WorldviewNewRouteImport.update({
+  id: '/worldview-new',
+  path: '/worldview-new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorldviewRoute = WorldviewRouteImport.update({
+  id: '/worldview',
+  path: '/worldview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClosingRoute = ClosingRouteImport.update({
+  id: '/closing',
+  path: '/closing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorldviewIndexRoute = WorldviewIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => WorldviewRoute,
+} as any)
+const WorldviewCardIdRoute = WorldviewCardIdRouteImport.update({
+  id: '/$cardId',
+  path: '/$cardId',
+  getParentRoute: () => WorldviewRoute,
+} as any)
+const StarBornBookIdRoute = StarBornBookIdRouteImport.update({
+  id: '/star-born/$bookId',
+  path: '/star-born/$bookId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuestionsBookIdRoute = QuestionsBookIdRouteImport.update({
+  id: '/questions/$bookId',
+  path: '/questions/$bookId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConstellationKeywordRoute = ConstellationKeywordRouteImport.update({
+  id: '/constellation/$keyword',
+  path: '/constellation/$keyword',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyzingBookIdRoute = AnalyzingBookIdRouteImport.update({
+  id: '/analyzing/$bookId',
+  path: '/analyzing/$bookId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuestionsRoute = QuestionsRouteImport.update({
+  id: '/questions/',
+  path: '/questions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnswerBookIdQuestionIdRoute = AnswerBookIdQuestionIdRouteImport.update({
+  id: '/answer/$bookId/$questionId',
+  path: '/answer/$bookId/$questionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/closing': typeof ClosingRoute
+  '/register': typeof RegisterRoute
+  '/search': typeof SearchRoute
+  '/worldview': typeof WorldviewRouteWithChildren
+  '/worldview-new': typeof WorldviewNewRoute
+  '/questions/': typeof QuestionsRoute
+  '/analyzing/$bookId': typeof AnalyzingBookIdRoute
+  '/constellation/$keyword': typeof ConstellationKeywordRoute
+  '/questions/$bookId': typeof QuestionsBookIdRoute
+  '/star-born/$bookId': typeof StarBornBookIdRoute
+  '/worldview/$cardId': typeof WorldviewCardIdRoute
+  '/worldview/': typeof WorldviewIndexRoute
+  '/answer/$bookId/$questionId': typeof AnswerBookIdQuestionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/closing': typeof ClosingRoute
+  '/register': typeof RegisterRoute
+  '/search': typeof SearchRoute
+  '/worldview-new': typeof WorldviewNewRoute
+  '/questions': typeof QuestionsRoute
+  '/analyzing/$bookId': typeof AnalyzingBookIdRoute
+  '/constellation/$keyword': typeof ConstellationKeywordRoute
+  '/questions/$bookId': typeof QuestionsBookIdRoute
+  '/star-born/$bookId': typeof StarBornBookIdRoute
+  '/worldview/$cardId': typeof WorldviewCardIdRoute
+  '/worldview': typeof WorldviewIndexRoute
+  '/answer/$bookId/$questionId': typeof AnswerBookIdQuestionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/closing': typeof ClosingRoute
+  '/register': typeof RegisterRoute
+  '/search': typeof SearchRoute
+  '/worldview': typeof WorldviewRouteWithChildren
+  '/worldview-new': typeof WorldviewNewRoute
+  '/questions/': typeof QuestionsRoute
+  '/analyzing/$bookId': typeof AnalyzingBookIdRoute
+  '/constellation/$keyword': typeof ConstellationKeywordRoute
+  '/questions/$bookId': typeof QuestionsBookIdRoute
+  '/star-born/$bookId': typeof StarBornBookIdRoute
+  '/worldview/$cardId': typeof WorldviewCardIdRoute
+  '/worldview/': typeof WorldviewIndexRoute
+  '/answer/$bookId/$questionId': typeof AnswerBookIdQuestionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/closing'
+    | '/register'
+    | '/search'
+    | '/worldview'
+    | '/worldview-new'
+    | '/questions/'
+    | '/analyzing/$bookId'
+    | '/constellation/$keyword'
+    | '/questions/$bookId'
+    | '/star-born/$bookId'
+    | '/worldview/$cardId'
+    | '/worldview/'
+    | '/answer/$bookId/$questionId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/closing'
+    | '/register'
+    | '/search'
+    | '/worldview-new'
+    | '/questions'
+    | '/analyzing/$bookId'
+    | '/constellation/$keyword'
+    | '/questions/$bookId'
+    | '/star-born/$bookId'
+    | '/worldview/$cardId'
+    | '/worldview'
+    | '/answer/$bookId/$questionId'
+  id:
+    | '__root__'
+    | '/'
+    | '/closing'
+    | '/register'
+    | '/search'
+    | '/worldview'
+    | '/worldview-new'
+    | '/questions/'
+    | '/analyzing/$bookId'
+    | '/constellation/$keyword'
+    | '/questions/$bookId'
+    | '/star-born/$bookId'
+    | '/worldview/$cardId'
+    | '/worldview/'
+    | '/answer/$bookId/$questionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClosingRoute: typeof ClosingRoute
+  RegisterRoute: typeof RegisterRoute
+  SearchRoute: typeof SearchRoute
+  WorldviewRoute: typeof WorldviewRouteWithChildren
+  WorldviewNewRoute: typeof WorldviewNewRoute
+  QuestionsRoute: typeof QuestionsRoute
+  AnalyzingBookIdRoute: typeof AnalyzingBookIdRoute
+  ConstellationKeywordRoute: typeof ConstellationKeywordRoute
+  QuestionsBookIdRoute: typeof QuestionsBookIdRoute
+  StarBornBookIdRoute: typeof StarBornBookIdRoute
+  AnswerBookIdQuestionIdRoute: typeof AnswerBookIdQuestionIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/worldview-new': {
+      id: '/worldview-new'
+      path: '/worldview-new'
+      fullPath: '/worldview-new'
+      preLoaderRoute: typeof WorldviewNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/worldview': {
+      id: '/worldview'
+      path: '/worldview'
+      fullPath: '/worldview'
+      preLoaderRoute: typeof WorldviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/closing': {
+      id: '/closing'
+      path: '/closing'
+      fullPath: '/closing'
+      preLoaderRoute: typeof ClosingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +252,92 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/worldview/': {
+      id: '/worldview/'
+      path: '/'
+      fullPath: '/worldview/'
+      preLoaderRoute: typeof WorldviewIndexRouteImport
+      parentRoute: typeof WorldviewRoute
+    }
+    '/worldview/$cardId': {
+      id: '/worldview/$cardId'
+      path: '/$cardId'
+      fullPath: '/worldview/$cardId'
+      preLoaderRoute: typeof WorldviewCardIdRouteImport
+      parentRoute: typeof WorldviewRoute
+    }
+    '/star-born/$bookId': {
+      id: '/star-born/$bookId'
+      path: '/star-born/$bookId'
+      fullPath: '/star-born/$bookId'
+      preLoaderRoute: typeof StarBornBookIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/questions/$bookId': {
+      id: '/questions/$bookId'
+      path: '/questions/$bookId'
+      fullPath: '/questions/$bookId'
+      preLoaderRoute: typeof QuestionsBookIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/constellation/$keyword': {
+      id: '/constellation/$keyword'
+      path: '/constellation/$keyword'
+      fullPath: '/constellation/$keyword'
+      preLoaderRoute: typeof ConstellationKeywordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analyzing/$bookId': {
+      id: '/analyzing/$bookId'
+      path: '/analyzing/$bookId'
+      fullPath: '/analyzing/$bookId'
+      preLoaderRoute: typeof AnalyzingBookIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/questions/': {
+      id: '/questions/'
+      path: '/questions'
+      fullPath: '/questions/'
+      preLoaderRoute: typeof QuestionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/answer/$bookId/$questionId': {
+      id: '/answer/$bookId/$questionId'
+      path: '/answer/$bookId/$questionId'
+      fullPath: '/answer/$bookId/$questionId'
+      preLoaderRoute: typeof AnswerBookIdQuestionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface WorldviewRouteChildren {
+  WorldviewCardIdRoute: typeof WorldviewCardIdRoute
+  WorldviewIndexRoute: typeof WorldviewIndexRoute
+}
+
+const WorldviewRouteChildren: WorldviewRouteChildren = {
+  WorldviewCardIdRoute: WorldviewCardIdRoute,
+  WorldviewIndexRoute: WorldviewIndexRoute,
+}
+
+const WorldviewRouteWithChildren = WorldviewRoute._addFileChildren(
+  WorldviewRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClosingRoute: ClosingRoute,
+  RegisterRoute: RegisterRoute,
+  SearchRoute: SearchRoute,
+  WorldviewRoute: WorldviewRouteWithChildren,
+  WorldviewNewRoute: WorldviewNewRoute,
+  QuestionsRoute: QuestionsRoute,
+  AnalyzingBookIdRoute: AnalyzingBookIdRoute,
+  ConstellationKeywordRoute: ConstellationKeywordRoute,
+  QuestionsBookIdRoute: QuestionsBookIdRoute,
+  StarBornBookIdRoute: StarBornBookIdRoute,
+  AnswerBookIdQuestionIdRoute: AnswerBookIdQuestionIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
