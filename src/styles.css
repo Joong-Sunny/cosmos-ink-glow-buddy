@@ -2,7 +2,8 @@
 @source "../src";
 @import "tw-animate-css";
 
-@import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Fraunces:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&family=Gowun+Batang:wght@400;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500;1,9..144,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -66,10 +67,10 @@
   --color-ring: var(--star-active);
 
   /* Fonts */
-  --font-display: "Gowun Batang", serif;
-  --font-display-italic: "Fraunces", serif;
-  --font-body: "IBM Plex Sans KR", "IBM Plex Sans", sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
+  --font-display: "Noto Serif KR", "Gowun Batang", "Fraunces", serif;
+  --font-display-italic: "Fraunces", "Cormorant Garamond", "Noto Serif KR", serif;
+  --font-body: "Pretendard Variable", "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
 
   /* Easing */
   --ease-cosmos: cubic-bezier(0.22, 1, 0.36, 1);
@@ -114,7 +115,25 @@
     background-color: var(--bg-cosmos);
     color: var(--ink-primary);
     font-family: var(--font-body);
+    font-feature-settings: "ss01", "ss02", "cv01", "cv11", "kern", "calt";
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Refined display typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-feature-settings: "kern", "liga", "calt";
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  em, i, .italic {
+    font-family: var(--font-display-italic);
+    font-style: italic;
+    font-feature-settings: "kern", "liga", "dlig", "swsh";
   }
 
   /* Dark scrollbar */
