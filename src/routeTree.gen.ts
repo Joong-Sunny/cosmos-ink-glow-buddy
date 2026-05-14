@@ -89,6 +89,11 @@ const QuestionsRoute = QuestionsRouteImport.update({
   path: '/questions/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConstellationRoute = ConstellationRouteImport.update({
+  id: '/constellation/',
+  path: '/constellation/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnswerBookIdQuestionIdRoute = AnswerBookIdQuestionIdRouteImport.update({
   id: '/answer/$bookId/$questionId',
   path: '/answer/$bookId/$questionId',
@@ -299,6 +304,13 @@ declare module '@tanstack/react-router' {
       path: '/questions'
       fullPath: '/questions/'
       preLoaderRoute: typeof QuestionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/constellation/': {
+      id: '/constellation/'
+      path: '/constellation'
+      fullPath: '/constellation/'
+      preLoaderRoute: typeof ConstellationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/answer/$bookId/$questionId': {
