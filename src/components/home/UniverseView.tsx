@@ -180,17 +180,54 @@ export function UniverseView({
 
   const isLone = books.length === 1;
 
-  const targetVb = active
-    ? focusViewBox(active)
-    : mode === "explore"
-    ? EXPLORE_VB
-    : FULL_VB;
   const vb = useAnimatedViewBox(targetVb);
 
+  // ESC clears focus & active
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setFocusStarId(null);
+        onActiveChange(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onActiveChange]);
+
+  // What links / stars are highlighted right now?
+  // - active keyword: all links with that keyword
+  // - focus star: all links from that star
+  const highlightedLinkSet = useMemo(() => {
+    const set = new Set<string>();
+    if (focusStarId) {
+      for (const l of graph.links) {
+        if (l.source === focusStarId) set.add(`${l.source}->${l.target}`);
+      }
+    }
+    if (active) {
+      for (const l of graph.links) {
+        if (l.keyword === active) set.add(`${l.source}->${l.target}`);
+      }
+    }
+    return set;
+  }, [focusStarId, active, graph]);
+
+  const highlightedStarIds = useMemo(() => {
+    const set = new Set<string>();
+    if (focusStarId) set.add(focusStarId);
+    if (active) {
+      const hub = graph.hubByKeyword[active];
+      if (hub) for (const id of graph.hubStars[hub.id] ?? []) set.add(id);
+    }
+    return set;
+  }, [focusStarId, active, graph]);
+
   const linesVisible = mode === "explore";
-  const lineOpacityBase = active ? 0 : 0.3;
-  const activeLineOpacity = 0.7;
-  const dimLineOpacity = 0.05;
+  const hasSelection = !!focusStarId || !!active;
+
+  const openBook: Book | null = openBookId
+    ? books.find((b) => b.id === openBookId) ?? null
+    : null;
 
   return (
     <>
