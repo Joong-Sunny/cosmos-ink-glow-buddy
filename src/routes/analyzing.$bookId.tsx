@@ -127,7 +127,7 @@ function BookCover({ title, author }: { title: string; author: string }) {
         />
         {/* Gold spine on left */}
         <rect x="0" y="0" width="6" height="180" fill="url(#spineGrad)" />
-        {/* Tiny constellation marks */}
+        {/* Tiny constellation marks (decor only) */}
         <circle cx="32" cy="42" r="1" fill="#F4F4ED" opacity="0.6" />
         <circle cx="44" cy="58" r="0.8" fill="#F4F4ED" opacity="0.5" />
         <circle cx="92" cy="38" r="1" fill="#F4F4ED" opacity="0.55" />
@@ -140,34 +140,59 @@ function BookCover({ title, author }: { title: string; author: string }) {
           strokeOpacity="0.25"
           strokeWidth="0.4"
         />
-        {/* Title */}
-        <text
-          x="65"
-          y="92"
-          textAnchor="middle"
-          fill="#F4F4ED"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 20,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {title}
-        </text>
-        {/* Author */}
-        <text
-          x="65"
-          y="138"
-          textAnchor="middle"
-          fill="#9AA0BD"
-          style={{
-            fontFamily: "var(--font-display-italic)",
-            fontStyle: "italic",
-            fontSize: 11,
-          }}
-        >
-          {author}
-        </text>
+        {/*
+          Title + author rendered via foreignObject so Korean text wraps
+          naturally inside the cover. SVG <text> has no auto-wrap, so any
+          title longer than ~6 chars used to bleed past the cover edges.
+        */}
+        <foreignObject x="10" y="62" width="110" height="76">
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              textAlign: "center",
+              color: "#F4F4ED",
+              fontFamily: "var(--font-display)",
+              fontSize: 13,
+              lineHeight: 1.25,
+              letterSpacing: "-0.02em",
+              wordBreak: "keep-all",
+              overflow: "hidden",
+            }}
+          >
+            <span
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {title}
+            </span>
+          </div>
+        </foreignObject>
+        <foreignObject x="10" y="142" width="110" height="22">
+          <div
+            style={{
+              width: "100%",
+              textAlign: "center",
+              color: "#9AA0BD",
+              fontFamily: "var(--font-display-italic)",
+              fontStyle: "italic",
+              fontSize: 10,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {author}
+          </div>
+        </foreignObject>
       </svg>
     </div>
   );

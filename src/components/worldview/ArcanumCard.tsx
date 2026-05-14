@@ -244,10 +244,18 @@ export const ArcanumCard = memo(function ArcanumCard({
         </g>
       </g>
 
-      {/* name KR line 1 */}
+      {/*
+        Vertical layout below the divider (y=275). The italic name is 26px,
+        so each ~26px requires an ascender of ~20px above its baseline. The
+        gap between two consecutive baselines must be > (ascender of next +
+        descender of previous) or the lines literally overlap on screen.
+        This was the cause of the "한글 두 줄이 뭉쳐 보이는" card bug.
+      */}
+
+      {/* name KR — plain (smaller, sits clearly above the italic title) */}
       <text
         x={140}
-        y={300}
+        y={296}
         textAnchor="middle"
         fill="#F4F4ED"
         style={{ fontFamily: "var(--font-display)", fontSize: 14 }}
@@ -255,10 +263,11 @@ export const ArcanumCard = memo(function ArcanumCard({
         {nameKrLine1}
       </text>
 
-      {/* italic name */}
+      {/* italic name — big display title, baseline 30px below plain line
+          so the ascender does not bite into the plain line above */}
       <text
         x={140}
-        y={316}
+        y={326}
         textAnchor="middle"
         fill="var(--gold-soft)"
         style={{
@@ -273,7 +282,7 @@ export const ArcanumCard = memo(function ArcanumCard({
       {/* English subtitle */}
       <text
         x={140}
-        y={336}
+        y={348}
         textAnchor="middle"
         fill="var(--gold-deep)"
         style={{
@@ -285,10 +294,10 @@ export const ArcanumCard = memo(function ArcanumCard({
         {nameEn}
       </text>
 
-      {/* Quote */}
+      {/* Quote — 12px italic, ~16px line-height */}
       <text
         x={36}
-        y={362}
+        y={376}
         fill="var(--gold)"
         opacity={0.35}
         style={{ fontFamily: "var(--font-display-italic)", fontStyle: "italic", fontSize: 14 }}
@@ -297,7 +306,7 @@ export const ArcanumCard = memo(function ArcanumCard({
       </text>
       <text
         x={140}
-        y={362}
+        y={376}
         textAnchor="middle"
         fill="#b8d0ff"
         opacity={0.95}
@@ -311,7 +320,7 @@ export const ArcanumCard = memo(function ArcanumCard({
       </text>
       <text
         x={140}
-        y={378}
+        y={394}
         textAnchor="middle"
         fill="#b8d0ff"
         opacity={0.95}
@@ -325,7 +334,7 @@ export const ArcanumCard = memo(function ArcanumCard({
       </text>
       <text
         x={244}
-        y={378}
+        y={394}
         fill="var(--gold)"
         opacity={0.35}
         style={{ fontFamily: "var(--font-display-italic)", fontStyle: "italic", fontSize: 14 }}
@@ -336,7 +345,7 @@ export const ArcanumCard = memo(function ArcanumCard({
       {/* source */}
       <text
         x={140}
-        y={394}
+        y={410}
         textAnchor="middle"
         fill="#9aa0bd"
         opacity={0.75}
@@ -346,31 +355,31 @@ export const ArcanumCard = memo(function ArcanumCard({
       </text>
 
       {/* meta band */}
-      <line x1={30} y1={410} x2={250} y2={410} stroke="var(--gold)" strokeWidth={0.5} opacity={0.7} />
-      <line x1={30} y1={414} x2={250} y2={414} stroke="var(--gold)" strokeWidth={0.5} opacity={0.4} />
+      <line x1={30} y1={420} x2={250} y2={420} stroke="var(--gold)" strokeWidth={0.5} opacity={0.7} />
+      <line x1={30} y1={424} x2={250} y2={424} stroke="var(--gold)" strokeWidth={0.5} opacity={0.4} />
       <text
         x={36}
-        y={424}
+        y={434}
         fill="var(--gold-deep)"
-        style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: 1 }}
+        style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, letterSpacing: 1 }}
       >
         {books} BOOKS
       </text>
       <text
         x={140}
-        y={424}
+        y={434}
         textAnchor="middle"
         fill="var(--gold)"
-        style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 1 }}
+        style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: 1 }}
       >
         ✦ {stars} STARS ✦
       </text>
       <text
         x={244}
-        y={424}
+        y={434}
         textAnchor="end"
         fill="var(--gold-deep)"
-        style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: 1 }}
+        style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, letterSpacing: 1 }}
       >
         {date}
       </text>

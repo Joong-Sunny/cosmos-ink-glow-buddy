@@ -200,16 +200,19 @@ function QuestionCard({
         </span>
       </div>
 
-      <div className="relative mt-10">
+      {/* The big "❝" watermark used to sit here at fontSize 56 + opacity 0.2,
+          but it bled into the Korean question text. A small inline quote
+          glyph above the text reads as a flourish without overlapping. */}
+      <div className="mt-8">
         <span
           aria-hidden
-          className="absolute -left-2 -top-3 font-display-italic text-[var(--ink-secondary)]"
-          style={{ fontSize: 56, opacity: 0.2, lineHeight: 1 }}
+          className="font-display-italic block leading-none text-[var(--ink-secondary)]"
+          style={{ fontSize: 22, opacity: 0.35 }}
         >
           “
         </span>
         <p
-          className="font-display text-[20px] leading-[1.5] text-[var(--ink-primary)]"
+          className="mt-1 font-display text-[20px] leading-[1.5] text-[var(--ink-primary)]"
           style={{ letterSpacing: "-0.01em" }}
         >
           {q.text}
