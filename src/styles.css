@@ -67,10 +67,10 @@
   --color-ring: var(--star-active);
 
   /* Fonts */
-  --font-display: "Gowun Batang", serif;
-  --font-display-italic: "Fraunces", serif;
-  --font-body: "IBM Plex Sans KR", "IBM Plex Sans", sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
+  --font-display: "Noto Serif KR", "Gowun Batang", "Fraunces", serif;
+  --font-display-italic: "Fraunces", "Cormorant Garamond", "Noto Serif KR", serif;
+  --font-body: "Pretendard Variable", "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
 
   /* Easing */
   --ease-cosmos: cubic-bezier(0.22, 1, 0.36, 1);
