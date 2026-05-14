@@ -48,22 +48,23 @@ type ViewBox = [number, number, number, number];
 
 type Planet = {
   id: string;
-  label: string;
-  kind: string;
   cx: number;
   cy: number;
   r: number;
   color: string;
 };
 
-/** Top-level "planet" groups that frame the universe. Decorative only. */
+/**
+ * Top-level "planet" tint zones — pure background coloring that hints at
+ * the three cluster regions. The decorative labels that used to live here
+ * (e.g., "세상과 마주", "PLANET · SOCIETY / HISTORY") were removed because
+ * their positions collided with the hub anchors right below them, making
+ * the screen look like overlapping text. The colour wash alone is enough.
+ */
 const PLANETS: Planet[] = [
-  { id: "self", label: "나와 성장", kind: "GROWTH / IDENTITY",
-    cx: 370, cy: 400, r: 300, color: "#8FB8FF" },
-  { id: "society", label: "세상과 마주", kind: "SOCIETY / HISTORY",
-    cx: 1170, cy: 520, r: 290, color: "#C9543B" },
-  { id: "discover", label: "상상과 발견", kind: "IMAGINATION / SCIENCE",
-    cx: 800, cy: 420, r: 330, color: "#E8B547" },
+  { id: "self", cx: 370, cy: 400, r: 300, color: "#8FB8FF" },
+  { id: "society", cx: 1170, cy: 520, r: 290, color: "#C9543B" },
+  { id: "discover", cx: 800, cy: 420, r: 330, color: "#E8B547" },
 ];
 
 // ─── Component ───────────────────────────────────────────────────────
@@ -267,49 +268,12 @@ function PlanetLayer({ hidden }: { hidden: boolean }) {
         <g key={p.id}>
           <defs>
             <radialGradient id={`pl-${p.id}`} cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor={p.color} stopOpacity="0.10" />
-              <stop offset="70%" stopColor={p.color} stopOpacity="0.025" />
+              <stop offset="0%" stopColor={p.color} stopOpacity="0.08" />
+              <stop offset="70%" stopColor={p.color} stopOpacity="0.02" />
               <stop offset="100%" stopColor={p.color} stopOpacity="0" />
             </radialGradient>
           </defs>
           <circle cx={p.cx} cy={p.cy} r={p.r} fill={`url(#pl-${p.id})`} />
-          <circle
-            cx={p.cx}
-            cy={p.cy}
-            r={p.r}
-            fill="none"
-            stroke={p.color}
-            strokeOpacity={0.1}
-            strokeDasharray="3 6"
-          />
-          <text
-            x={p.cx}
-            y={p.cy - p.r + 26}
-            textAnchor="middle"
-            fill="var(--gold-deep)"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: 20,
-              letterSpacing: "0.02em",
-              opacity: 0.55,
-            }}
-          >
-            {p.label}
-          </text>
-          <text
-            x={p.cx}
-            y={p.cy - p.r + 42}
-            textAnchor="middle"
-            fill="var(--gold-deep)"
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 8.5,
-              letterSpacing: "0.2em",
-              opacity: 0.4,
-            }}
-          >
-            PLANET · {p.kind}
-          </text>
         </g>
       ))}
     </g>

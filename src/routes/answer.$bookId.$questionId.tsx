@@ -1,8 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Mic, Camera, ArrowRight, SkipForward } from "lucide-react";
 import { useUniverseStore } from "@/lib/store";
 import { FloatingPanel } from "@/components/layout/FloatingPanel";
+import { useSmartBack } from "@/hooks/use-smart-back";
 import {
   followUpQuestions,
   getCardsForBook,
@@ -26,6 +27,8 @@ type Turn = {
 };
 
 function AnswerPage() {
+  const goBack = useSmartBack("/");
+
   const { bookId, questionId } = Route.useParams();
   const navigate = useNavigate();
 
@@ -201,14 +204,14 @@ function AnswerPage() {
           className="flex items-center gap-3 px-6 py-5"
           style={{ borderBottom: "1px solid var(--ink-faint)" }}
         >
-          <Link
-            to="/questions/$bookId"
-            params={{ bookId }}
+          <button
+            type="button"
+            onClick={goBack}
             className="grid h-9 w-9 shrink-0 place-items-center text-[var(--ink-secondary)] hover:text-[var(--star-active)]"
             aria-label="뒤로"
           >
             <ChevronLeft size={22} strokeWidth={1.5} />
-          </Link>
+          </button>
           <CompressedQuestion q={activeQ} />
         </div>
 
