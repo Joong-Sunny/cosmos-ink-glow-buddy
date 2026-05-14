@@ -1,6 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import { useSmartBack } from "@/hooks/use-smart-back";
 
 export const Route = createFileRoute("/constellation/$keyword")({
   component: Page,
@@ -40,6 +41,7 @@ const CANDIDATES: Array<{
 function Page() {
   const { keyword } = Route.useParams();
   const navigate = useNavigate();
+  const goBack = useSmartBack("/");
   const [ctaVisible, setCtaVisible] = useState(false);
 
   // 자동 이동 제거 — CTA만 6초 후 등장.
@@ -52,13 +54,14 @@ function Page() {
     <main className="relative h-screen w-screen overflow-hidden">
       {/* Top bar */}
       <header className="fixed inset-x-0 top-0 z-20 flex items-center justify-between px-10 py-6">
-        <Link
-          to="/"
+        <button
+          type="button"
+          onClick={goBack}
           className="grid h-10 w-10 place-items-center rounded-full border border-[var(--ink-faint)] bg-[var(--bg-elevated)]/40 text-[var(--ink-secondary)] backdrop-blur-md hover:text-[var(--star-active)]"
-          aria-label="홈으로"
+          aria-label="뒤로"
         >
           <ArrowLeft size={20} />
-        </Link>
+        </button>
         <div
           className="text-center"
           style={{

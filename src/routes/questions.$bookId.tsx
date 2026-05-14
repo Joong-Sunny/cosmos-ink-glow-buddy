@@ -1,8 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useUniverseStore } from "@/lib/store";
 import { FloatingPanel } from "@/components/layout/FloatingPanel";
+import { useSmartBack } from "@/hooks/use-smart-back";
 import {
   getCardsForBook,
   LEVEL_META,
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/questions/$bookId")({
 function QuestionsPage() {
   const { bookId } = Route.useParams();
   const navigate = useNavigate();
+  const goBack = useSmartBack("/");
   const book = useUniverseStore((s) => s.books.find((b) => b.id === bookId));
   const cards = useMemo(() => getCardsForBook(book), [book]);
   const total = cards.length;
@@ -55,13 +57,14 @@ function QuestionsPage() {
 
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center px-6 py-10">
-      <Link
-        to="/"
+      <button
+        type="button"
+        onClick={goBack}
         className="fixed left-8 top-8 z-20 grid h-10 w-10 place-items-center rounded-full border border-[var(--ink-faint)] bg-[var(--bg-elevated)]/40 text-[var(--ink-secondary)] backdrop-blur-md hover:text-[var(--star-active)]"
         aria-label="뒤로"
       >
         <ChevronLeft size={20} strokeWidth={1.5} />
-      </Link>
+      </button>
 
       <FloatingPanel maxWidthClass="max-w-[760px]" padding="px-12 py-12">
         <div

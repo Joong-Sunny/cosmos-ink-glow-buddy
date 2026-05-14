@@ -19,21 +19,33 @@ export function BookSheet({ book, onClose }: Props) {
   }, [open, onClose]);
 
   return (
-    <div
-      aria-hidden={!open}
-      className="fixed right-8 top-1/2 z-40 w-[440px] max-h-[80vh] -translate-y-1/2 overflow-y-auto transition-all duration-500"
-      style={{
-        transform: open ? "translate(0, -50%)" : "translate(120%, -50%)",
-        transitionTimingFunction: "var(--ease-cosmos)",
-      }}
-    >
+    <>
+      {/* Backdrop — sibling, not child, so the parent's `transform` doesn't
+          constrain it. z-35 sits above the SVG (z-10) and below the panel (z-40). */}
       {open && (
-        <div
+        <button
+          type="button"
           onClick={onClose}
-          className="fixed inset-0 -z-10 bg-[var(--bg-deep)]/30 backdrop-blur-[2px]"
+          aria-label="닫기"
+          tabIndex={-1}
+          className="fixed inset-0 z-[35] bg-[var(--bg-deep)]/30 backdrop-blur-[2px] cursor-default"
+          style={{
+            animation: "rise 0.25s var(--ease-cosmos) both",
+          }}
         />
       )}
-      {book && <BookDetailPanel book={book} onClose={onClose} />}
-    </div>
+      <aside
+        aria-hidden={!open}
+        className="fixed right-8 top-1/2 z-40 w-[440px] max-h-[80vh] -translate-y-1/2 overflow-y-auto transition-all duration-500"
+        style={{
+          transform: open ? "translate(0, -50%)" : "translate(120%, -50%)",
+          transitionTimingFunction: "var(--ease-cosmos)",
+          pointerEvents: open ? "auto" : "none",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {book && <BookDetailPanel book={book} onClose={onClose} />}
+      </aside>
+    </>
   );
 }

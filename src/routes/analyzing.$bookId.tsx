@@ -18,7 +18,8 @@ function AnalyzingPage() {
 
   useEffect(() => {
     const t = window.setTimeout(() => {
-      navigate({ to: "/questions/$bookId", params: { bookId } });
+      // `replace` so pressing back from /questions doesn't ping-pong here
+      navigate({ to: "/questions/$bookId", params: { bookId }, replace: true });
     }, 2800);
     return () => window.clearTimeout(t);
   }, [bookId, navigate]);

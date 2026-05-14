@@ -193,12 +193,19 @@ export function UniverseView({
       >
         <defs>
           <radialGradient id="starGlowBlue" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#8FB8FF" stopOpacity="0.55" />
+            <stop offset="0%" stopColor="#B8D0FF" stopOpacity="0.8" />
+            <stop offset="50%" stopColor="#8FB8FF" stopOpacity="0.25" />
             <stop offset="100%" stopColor="#8FB8FF" stopOpacity="0" />
           </radialGradient>
           <radialGradient id="starGlowWhite" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#F4F4ED" stopOpacity="0.45" />
+            <stop offset="0%" stopColor="#F4F4ED" stopOpacity="0.55" />
+            <stop offset="45%" stopColor="#F4F4ED" stopOpacity="0.12" />
             <stop offset="100%" stopColor="#F4F4ED" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="starGlowFull" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#FFF6D6" stopOpacity="0.7" />
+            <stop offset="35%" stopColor="#E8B547" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#E8B547" stopOpacity="0" />
           </radialGradient>
         </defs>
 
@@ -272,7 +279,7 @@ export function UniverseView({
           }}
         >
           {graph.candidates.map((c, i) => (
-            <g key={i}>
+            <g key={i} style={{ pointerEvents: "none" }}>
               <line
                 x1={c.fromX}
                 y1={c.fromY}
@@ -283,12 +290,23 @@ export function UniverseView({
                 strokeDasharray="2 3"
                 opacity={0.6}
               />
+              {/* Ghost ring — visually distinct from real book stars */}
               <circle
                 cx={c.x}
                 cy={c.y}
-                r={1.8}
+                r={3.2}
+                fill="none"
+                stroke="var(--ink-muted)"
+                strokeWidth={0.6}
+                strokeDasharray="1.5 2"
+                opacity={0.5}
+              />
+              <circle
+                cx={c.x}
+                cy={c.y}
+                r={0.9}
                 fill="var(--ink-muted)"
-                opacity={0.4}
+                opacity={0.55}
               />
               {c.isLabel && (
                 <text
@@ -411,31 +429,49 @@ export function UniverseView({
             const isCurrent = currentStar?.id === s.id;
             const isHighlighted = highlightedStarIds.has(s.id);
             const dim = hasSelection && !isHighlighted && !isCurrent;
+            const isLit = tier >= 1; // 1+ keyword answered = "read"
 
-            // Sizing per completion tier
-            const r = tier === 3 ? 5 : tier >= 1 ? 4 : 2.5;
-            const haloR = tier === 3 ? 14 : tier >= 1 ? 8 : 0;
+            // Sizing — tier 0 is markedly smaller, tier 3 noticeably bigger
+            const r = isCurrent ? 5.5 : tier === 3 ? 4 : tier >= 1 ? 3 : 2;
+            // Tier 0 still gets a faint halo so users see it's a real book, not a decorative dot
+            const haloR = isCurrent ? 22 : tier === 3 ? 18 : tier >= 1 ? 11 : 6;
 
-            // Color: current = blue; highlighted = white; otherwise muted
+            // Color: current = bright blue; lit = warm white; unread = faint grey
             const fill = isCurrent
-              ? "var(--star-active)"
+              ? "#E8F0FF"
               : isHighlighted
-              ? "var(--constellation)"
-              : "var(--ink-muted)";
+              ? "#FFFFFF"
+              : isLit
+              ? "#F4F4ED"
+              : "#5A6B8E"; // dim grey-blue for unread
 
+            // Base opacity per state
             const baseOp = isCurrent
               ? 1
               : dim
-              ? 0.18
+              ? 0.12
               : isHighlighted
               ? 1
               : tier === 0
-              ? 0.5
-              : 0.7;
+              ? 0.42
+              : tier === 3
+              ? 0.95
+              : 0.72;
 
-            const haloFill = isCurrent ? "url(#starGlowBlue)" : "url(#starGlowWhite)";
-            const showHalo = haloR > 0 && (isCurrent || isHighlighted);
-            const animate = isCurrent || isHighlighted;
+            const haloFill = isCurrent
+              ? "url(#starGlowBlue)"
+              : tier === 3
+              ? "url(#starGlowFull)"
+              : "url(#starGlowWhite)";
+
+            const showHalo = haloR > 0 && !dim;
+            // Cross spikes for fully-read / current — gives a real "star" silhouette
+            const spikes = (tier === 3 || isCurrent) && !dim;
+            const spikeLen = isCurrent ? 14 : 11;
+            const spikeColor = isCurrent ? "#B8D0FF" : "#F4F4ED";
+
+            // Subtle ambient shimmer for all lit stars (current uses pulse-glow instead)
+            const shimmer = isLit && !isCurrent;
 
             return (
               <g
@@ -449,7 +485,41 @@ export function UniverseView({
                 style={{ cursor: "pointer" }}
               >
                 {showHalo && (
-                  <circle cx={s.x} cy={s.y} r={haloR} fill={haloFill} />
+                  <circle
+                    cx={s.x}
+                    cy={s.y}
+                    r={haloR}
+                    fill={haloFill}
+                    className={isCurrent || tier === 3 ? "star-halo-breathe" : undefined}
+                    style={{
+                      animationDelay: isCurrent || tier === 3 ? `${twinkleDelay(s.id)}s` : undefined,
+                    }}
+                  />
+                )}
+                {spikes && (
+                  <g
+                    opacity={isCurrent ? 0.7 : 0.5}
+                    style={{ mixBlendMode: "screen" }}
+                  >
+                    <line
+                      x1={s.x - spikeLen}
+                      y1={s.y}
+                      x2={s.x + spikeLen}
+                      y2={s.y}
+                      stroke={spikeColor}
+                      strokeWidth={0.6}
+                      strokeLinecap="round"
+                    />
+                    <line
+                      x1={s.x}
+                      y1={s.y - spikeLen}
+                      x2={s.x}
+                      y2={s.y + spikeLen}
+                      stroke={spikeColor}
+                      strokeWidth={0.6}
+                      strokeLinecap="round"
+                    />
+                  </g>
                 )}
                 {/* invisible hit area */}
                 <circle cx={s.x} cy={s.y} r={14} fill="transparent" />
@@ -459,9 +529,20 @@ export function UniverseView({
                   r={r}
                   fill={fill}
                   opacity={baseOp}
-                  className={animate ? "twinkle" : undefined}
+                  className={
+                    isCurrent
+                      ? "pulse-glow"
+                      : shimmer
+                      ? "star-shimmer"
+                      : undefined
+                  }
                   style={{
-                    animationDelay: animate ? `${twinkleDelay(s.id)}s` : undefined,
+                    animationDelay: shimmer ? `${twinkleDelay(s.id)}s` : undefined,
+                    ...(shimmer
+                      ? ({
+                          ["--star-base-op" as never]: baseOp,
+                        } as React.CSSProperties)
+                      : {}),
                     transition: "opacity 600ms var(--ease-cosmos)",
                   }}
                 />

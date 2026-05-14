@@ -1,8 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Search as SearchIcon, X } from "lucide-react";
 import { useUniverseStore } from "@/lib/store";
 import { ArcanumCard, type ArcanumCardProps } from "@/components/worldview/ArcanumCard";
+import { useSmartBack } from "@/hooks/use-smart-back";
 import type { WorldviewCard } from "@/lib/types";
 
 export const Route = createFileRoute("/search")({
@@ -80,6 +81,7 @@ function Page() {
   const [showResults, setShowResults] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const navigate = useNavigate();
+  const goBack = useSmartBack("/");
 
   const totals = useMemo(
     () => ({
@@ -114,12 +116,14 @@ function Page() {
       className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1100px] flex-col px-10 pt-24 pb-12"
       style={{ animation: "rise 0.5s var(--ease-cosmos) both" }}
     >
-      <Link
-        to="/"
+      <button
+        type="button"
+        onClick={goBack}
+        aria-label="뒤로"
         className="fixed left-8 top-8 z-20 grid h-10 w-10 place-items-center rounded-full border border-[var(--ink-faint)] bg-[var(--bg-elevated)]/40 text-[var(--ink-secondary)] backdrop-blur-md hover:text-[var(--star-active)]"
       >
         <ArrowLeft size={20} />
-      </Link>
+      </button>
       <div
         className="text-center"
         style={{

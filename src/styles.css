@@ -228,6 +228,15 @@
   0%, 100% { opacity: 0.55; }
   50% { opacity: 1; }
 }
+/* Subtle always-on twinkle that doesn't blow out opacity — used for ambient lit stars. */
+@keyframes star-shimmer {
+  0%, 100% { opacity: var(--star-base-op, 0.7); }
+  50%      { opacity: calc(var(--star-base-op, 0.7) + 0.18); }
+}
+@keyframes star-halo-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 0.9;  transform: scale(1.08); }
+}
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 20px var(--star-glow), 0 0 40px rgba(143,184,255,0.3); }
   50% { box-shadow: 0 0 40px var(--star-glow), 0 0 80px rgba(143,184,255,0.5); }
@@ -242,5 +251,7 @@
 }
 
 .twinkle { animation: twinkle 2.5s ease-in-out infinite; }
+.star-shimmer { animation: star-shimmer 3.6s ease-in-out infinite; }
+.star-halo-breathe { animation: star-halo-breathe 4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
 .pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
 .rise { animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
