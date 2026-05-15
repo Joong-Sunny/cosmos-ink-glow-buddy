@@ -108,7 +108,8 @@ function Home() {
                 fontFamily: "var(--font-mono)",
                 fontSize: 11,
                 letterSpacing: "0.2em",
-                color: "var(--gold-deep)",
+                color: "var(--gold-soft)",
+                opacity: 0.85,
                 textTransform: "uppercase",
               }}
             >

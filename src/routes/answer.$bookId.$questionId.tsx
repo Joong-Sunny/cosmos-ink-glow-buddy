@@ -292,7 +292,7 @@ function CompressedQuestion({ q }: { q: CardQuestion | Turn["question"] }) {
         borderLeft: "2px solid var(--star-trail)",
       }}
     >
-      <div className="text-meta text-[var(--ink-muted)]" style={{ fontSize: 8 }}>
+      <div className="text-meta text-[var(--ink-secondary)]" style={{ fontSize: 11 }}>
         QUESTION · {q.level}
       </div>
       <div className="mt-0.5 line-clamp-2 font-display text-[14px] leading-[1.4] text-[var(--ink-primary)]">
@@ -369,10 +369,10 @@ function ComposeView({
           <p
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 10,
+              fontSize: 11,
               letterSpacing: "0.15em",
-              color: "var(--ink-muted)",
-              opacity: 0.7,
+              color: "var(--ink-secondary)",
+              opacity: 0.85,
             }}
           >
             조금 더 적어볼 수도 있어.
@@ -451,8 +451,8 @@ function TurnBlock({ turn }: { turn: Turn }) {
         }}
       >
         <div
-          className="text-meta text-[var(--ink-muted)]"
-          style={{ fontSize: 10 }}
+          className="text-meta text-[var(--ink-secondary)]"
+          style={{ fontSize: 11 }}
         >
           Q · {turn.question.level}
           {turn.arriving && (
@@ -472,12 +472,12 @@ function TurnBlock({ turn }: { turn: Turn }) {
             style={{ background: "rgba(244,244,237,0.03)" }}
           >
             <div
-              className="text-right text-meta text-[var(--ink-muted)]"
-              style={{ fontSize: 10 }}
+              className="text-right text-meta text-[var(--ink-secondary)]"
+              style={{ fontSize: 11 }}
             >
               YOU
             </div>
-            <p className="mt-1 font-display-italic text-[14px] leading-[1.4] text-[var(--ink-secondary)]">
+            <p className="mt-1 font-display-italic text-[15px] leading-[1.6] text-[#EDEAE0]">
               {turn.answer}
             </p>
           </div>

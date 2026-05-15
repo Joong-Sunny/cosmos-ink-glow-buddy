@@ -122,12 +122,12 @@ function Page() {
                   </span>
                   <span
                     className="block truncate"
-                    style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--ink-muted)" }}
+                    style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--ink-secondary)" }}
                   >
                     {b.author}
                   </span>
                 </span>
-                <span style={{ color: "var(--ink-muted)" }}>›</span>
+                <span style={{ color: "var(--ink-secondary)" }}>›</span>
               </Link>
             </li>
           ))}

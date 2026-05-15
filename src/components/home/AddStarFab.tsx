@@ -31,9 +31,9 @@ export function AddStarFab() {
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 9.5,
+              fontSize: 11,
               letterSpacing: "0.24em",
-              color: "var(--gold-deep)",
+              color: "var(--gold-soft)",
             }}
           >
             ADD&nbsp;·&nbsp;A NEW STAR

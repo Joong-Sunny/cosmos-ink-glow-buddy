@@ -93,7 +93,7 @@ function Page() {
       >
         <div
           style={{
-            color: "var(--gold-deep)",
+            color: "var(--gold-soft)",
             fontFamily: "var(--font-mono)",
             fontSize: 11,
             letterSpacing: "0.2em",
