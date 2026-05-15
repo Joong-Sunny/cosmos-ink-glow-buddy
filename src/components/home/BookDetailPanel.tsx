@@ -88,7 +88,7 @@ export function BookDetailPanel({ book, onClose }: Props) {
               className="mt-0.5 truncate"
               style={{
                 fontFamily: "var(--font-body)",
-                fontSize: 12,
+                fontSize: 13,
                 color: "var(--ink-secondary)",
               }}
             >
@@ -221,9 +221,9 @@ export function BookDetailPanel({ book, onClose }: Props) {
                       className="mt-1.5"
                       style={{
                         fontFamily: "var(--font-body)",
-                        fontSize: 13,
-                        lineHeight: 1.5,
-                        color: isDone ? "var(--ink-muted)" : "var(--ink-primary)",
+                        fontSize: 15,
+                        lineHeight: 1.55,
+                        color: isDone ? "var(--ink-secondary)" : "var(--ink-primary)",
                       }}
                     >
                       {card.text}
@@ -238,7 +238,7 @@ export function BookDetailPanel({ book, onClose }: Props) {
                     className="mt-2"
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9.5,
+                      fontSize: 11,
                       letterSpacing: "0.2em",
                       color: "var(--ink-secondary)",
                     }}
@@ -263,19 +263,21 @@ export function BookDetailPanel({ book, onClose }: Props) {
                 )}
                 {isDone && isOpen && (
                   <div
-                    className="mt-2 rounded-lg p-2"
+                    className="mt-2 rounded-lg p-3"
                     style={{
-                      background: "rgba(7,9,26,0.6)",
+                      background: "rgba(244,244,237,0.06)",
                       border: "1px solid var(--ink-faint)",
                     }}
                   >
                     {transcripts.length === 0 ? (
                       <p
                         style={{
-                          fontFamily: "var(--font-body)",
-                          fontSize: 12,
-                          color: "var(--ink-muted)",
+                          fontFamily: "var(--font-display-italic)",
+                          fontSize: 15,
+                          lineHeight: 1.6,
+                          color: "var(--ink-secondary)",
                           fontStyle: "italic",
+                          WebkitFontSmoothing: "antialiased",
                         }}
                       >
                         (시연 데이터: 답변 트랜스크립트는 아직 비어 있어요.)
@@ -284,12 +286,14 @@ export function BookDetailPanel({ book, onClose }: Props) {
                       transcripts.map((t, i) => (
                         <p
                           key={i}
-                          className="mb-1.5 last:mb-0"
+                          className="mb-2 last:mb-0"
                           style={{
-                            fontFamily: "var(--font-body)",
-                            fontSize: 12,
-                            lineHeight: 1.55,
-                            color: "var(--ink-secondary)",
+                            fontFamily: "var(--font-display-italic)",
+                            fontSize: 15,
+                            lineHeight: 1.6,
+                            fontStyle: "italic",
+                            color: "#EDEAE0",
+                            WebkitFontSmoothing: "antialiased",
                           }}
                         >
                           {t}
