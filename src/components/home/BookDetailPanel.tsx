@@ -221,9 +221,9 @@ export function BookDetailPanel({ book, onClose }: Props) {
                       className="mt-1.5"
                       style={{
                         fontFamily: "var(--font-body)",
-                        fontSize: 13,
-                        lineHeight: 1.5,
-                        color: isDone ? "var(--ink-muted)" : "var(--ink-primary)",
+                        fontSize: 15,
+                        lineHeight: 1.55,
+                        color: isDone ? "var(--ink-secondary)" : "var(--ink-primary)",
                       }}
                     >
                       {card.text}
