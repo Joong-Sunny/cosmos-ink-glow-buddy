@@ -228,10 +228,27 @@
   0%, 100% { opacity: 0.55; }
   50% { opacity: 1; }
 }
-/* Subtle always-on twinkle that doesn't blow out opacity — used for ambient lit stars. */
+/* Star twinkle — gentle pulse with a brief peak. Smoother S-curves between
+   keyframe stops (CSS applies ease-in-out per segment) so the rise/fall
+   feels like a real star, not a strobe. Per-star delay + duration (set
+   inline) stagger the pulses so the field never breathes in sync. */
 @keyframes star-shimmer {
-  0%, 100% { opacity: var(--star-base-op, 0.7); }
-  50%      { opacity: calc(var(--star-base-op, 0.7) + 0.18); }
+  0%, 60%, 100% {
+    opacity: var(--star-base-op, 0.7);
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(1.35);
+  }
+  85% {
+    opacity: 1;
+    transform: scale(1.35);
+  }
+  95% {
+    opacity: var(--star-base-op, 0.7);
+    transform: scale(1);
+  }
 }
 @keyframes star-halo-breathe {
   0%, 100% { opacity: 0.55; transform: scale(1); }
@@ -251,7 +268,11 @@
 }
 
 .twinkle { animation: twinkle 2.5s ease-in-out infinite; }
-.star-shimmer { animation: star-shimmer 3.6s ease-in-out infinite; }
+.star-shimmer {
+  animation: star-shimmer 3.6s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
 .star-halo-breathe { animation: star-halo-breathe 4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
 .pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
 .rise { animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }

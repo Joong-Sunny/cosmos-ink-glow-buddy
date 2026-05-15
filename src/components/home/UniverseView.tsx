@@ -650,7 +650,37 @@ function Star({
   const dim = hasSelection && !isHighlighted;
 
   const baseOp = isHighlighted ? 1 : dim ? 0.14 : 0.78;
-  const fill = isHighlighted ? "#FFFFFF" : "#F4F4ED";
+
+  // 20% chance of sparkle (4-point star) instead of plain dot. Decided once
+  // on mount via Math.random() so the mix shuffles on every page refresh
+  // but stays stable while the user is looking at it.
+  const isSparkle = useMemo(() => Math.random() < 0.4, []);
+  // Per-star size variance: 1.0–1.8× the canonical radius. Wider spread
+  // creates clear "main stars" vs "background stars" hierarchy.
+  const sizeScale = useMemo(() => 1.0 + Math.random() * 0.8, []);
+  const visualR = (isHighlighted ? 4 : 3) * sizeScale;
+  // Subtle per-star color tint — real night sky has gold/blue hues mixed
+  // into mostly-white. 8% warm, 7% cool, 85% default off-white. Highlighted
+  // stars stay pure white for contrast.
+  const tint = useMemo(() => {
+    const r = Math.random();
+    if (r < 0.08) return "#FFE3B8"; // warm gold
+    if (r < 0.15) return "#CFE0FF"; // cool blue-white
+    return "#F4F4ED";               // default
+  }, []);
+  const fill = isHighlighted ? "#FFFFFF" : tint;
+
+  const shimmerProps = {
+    className: dim ? undefined : "star-shimmer",
+    style: {
+      animationDelay: dim ? undefined : `${twinkleDelay(star.id)}s`,
+      animationDuration: dim ? undefined : `${twinkleDuration(star.id)}s`,
+      ...(dim
+        ? {}
+        : ({ ["--star-base-op" as never]: baseOp } as React.CSSProperties)),
+      transition: "opacity 600ms var(--ease-cosmos)",
+    } as React.CSSProperties,
+  };
 
   return (
     <g
@@ -660,42 +690,81 @@ function Star({
       }}
       style={{ cursor: "pointer" }}
     >
-      {/* Halo */}
+      {/* Halo — scales with size so big stars feel like proper bright stars */}
       {!dim && (
         <circle
           cx={star.x}
           cy={star.y}
-          r={isHighlighted ? 16 : 11}
+          r={isHighlighted ? 16 : 8 + 8 * (sizeScale - 1) / 0.8}
           fill="url(#starGlowWhite)"
         />
       )}
       {/* Larger invisible hit area than the visible dot */}
       <circle cx={star.x} cy={star.y} r={14} fill="transparent" />
-      <circle
-        cx={star.x}
-        cy={star.y}
-        r={isHighlighted ? 4 : 3}
-        fill={fill}
-        opacity={baseOp}
-        className={dim ? undefined : "star-shimmer"}
-        style={{
-          animationDelay: dim ? undefined : `${twinkleDelay(star.id)}s`,
-          ...(dim
-            ? {}
-            : ({ ["--star-base-op" as never]: baseOp } as React.CSSProperties)),
-          transition: "opacity 600ms var(--ease-cosmos)",
-        }}
-      />
+
+      {isSparkle ? (
+        // Sparkle은 path 좌표가 (0,0) 중심이라 wrapper <g>로 위치 이동.
+        // 트윙클 애니메이션의 transform: scale은 path의 fill-box 중심을
+        // 기준으로 작용하므로 좌표 충돌 없이 깔끔하게 합쳐진다.
+        <g transform={`translate(${star.x}, ${star.y})`}>
+          <path
+            d={sparklePath(visualR * 1.9, visualR * 0.55)}
+            fill={fill}
+            opacity={baseOp}
+            {...shimmerProps}
+          />
+        </g>
+      ) : (
+        <circle
+          cx={star.x}
+          cy={star.y}
+          r={visualR}
+          fill={fill}
+          opacity={baseOp}
+          {...shimmerProps}
+        />
+      )}
     </g>
   );
 }
 
+/** 4-point sparkle (✦) path centered at origin. Curves through (0,0) for
+ *  the classic pinched-waist look. */
+function sparklePath(outer: number, inner: number): string {
+  const o = outer;
+  const i = inner;
+  return [
+    `M0,-${o}`,
+    `Q0,0 ${i},-${i}`,
+    `Q0,0 ${o},0`,
+    `Q0,0 ${i},${i}`,
+    `Q0,0 0,${o}`,
+    `Q0,0 -${i},${i}`,
+    `Q0,0 -${o},0`,
+    `Q0,0 -${i},-${i}`,
+    `Q0,0 0,-${o}`,
+    "Z",
+  ].join(" ");
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 
-function twinkleDelay(seed: string): string {
+function hashSeed(seed: string): number {
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return ((h % 280) / 100).toFixed(2);
+  return h;
+}
+
+/** Per-star phase offset so pops don't sync up across the field. 0–6s. */
+function twinkleDelay(seed: string): string {
+  return ((hashSeed(seed) % 600) / 100).toFixed(2);
+}
+
+/** Per-star cycle length so cadence varies too. 6–11s — slower than the
+ *  previous range gives the smoother keyframe room to breathe. */
+function twinkleDuration(seed: string): string {
+  // bit-shift to a different slice of the hash so duration ≠ delay
+  return (6 + ((hashSeed(seed) >>> 8) % 500) / 100).toFixed(2);
 }
 
 /** Fit a viewbox around given points, padded, preserving canvas ratio. */
