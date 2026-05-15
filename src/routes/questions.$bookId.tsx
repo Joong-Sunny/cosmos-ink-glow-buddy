@@ -195,7 +195,7 @@ function QuestionCard({
         >
           {meta.label}
         </span>
-        <span className="font-display-italic text-[13px] text-[var(--ink-muted)]">
+        <span className="font-mono text-[12px] tracking-wide text-[var(--ink-secondary)]">
           #{q.keyword}
         </span>
       </div>
