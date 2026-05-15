@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Search, Sparkle, BookOpen } from "lucide-react";
+import { Search, Sparkle } from "lucide-react";
 
 export function HomeHeader() {
   return (
@@ -39,15 +39,6 @@ export function HomeHeader() {
           <Search size={15} />
           <span className="text-[12px]" style={{ letterSpacing: "0.08em" }}>
             생각 꺼내기
-          </span>
-        </Link>
-        <Link
-          to="/worldview"
-          className="flex h-10 items-center gap-2 rounded-full border border-[var(--ink-faint)] bg-[var(--bg-elevated)]/40 px-4 text-[var(--ink-secondary)] transition-colors hover:text-[var(--gold-soft)]"
-        >
-          <BookOpen size={15} />
-          <span className="text-[12px]" style={{ letterSpacing: "0.08em" }}>
-            도감
           </span>
         </Link>
         <button
