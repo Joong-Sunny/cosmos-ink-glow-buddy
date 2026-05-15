@@ -119,10 +119,13 @@ function Page() {
       <button
         type="button"
         onClick={goBack}
-        aria-label="뒤로"
-        className="fixed left-8 top-8 z-20 grid h-10 w-10 place-items-center rounded-full border border-[var(--ink-faint)] bg-[var(--bg-elevated)]/40 text-[var(--ink-secondary)] backdrop-blur-md hover:text-[var(--star-active)]"
+        aria-label="홈으로"
+        className="fixed left-8 top-8 z-20 flex h-10 items-center gap-2 rounded-full border border-[var(--ink-faint)] bg-[var(--bg-elevated)]/40 px-4 text-[var(--ink-secondary)] backdrop-blur-md transition-colors hover:text-[var(--star-active)]"
       >
-        <ArrowLeft size={20} />
+        <ArrowLeft size={16} />
+        <span className="text-[12px]" style={{ letterSpacing: "0.08em" }}>
+          홈으로
+        </span>
       </button>
       <div
         className="text-center"
