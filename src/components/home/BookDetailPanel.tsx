@@ -238,7 +238,7 @@ export function BookDetailPanel({ book, onClose }: Props) {
                     className="mt-2"
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9.5,
+                      fontSize: 11,
                       letterSpacing: "0.2em",
                       color: "var(--ink-secondary)",
                     }}
