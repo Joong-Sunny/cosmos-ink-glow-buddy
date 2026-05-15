@@ -321,7 +321,6 @@ export const ArcanumCard = memo(function ArcanumCard({
       </text>
       <foreignObject x={42} y={285} width={196} height={62}>
         <div
-          xmlns="http://www.w3.org/1999/xhtml"
           style={{
             width: "100%",
             height: "100%",
