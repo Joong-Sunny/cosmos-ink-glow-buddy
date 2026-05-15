@@ -35,6 +35,7 @@ import {
   buildUniverseGraph,
   UNIVERSE_VIEWBOX,
 } from "@/lib/universe-graph";
+import { CATEGORY_COLORS } from "@/lib/categories";
 import type { Book } from "@/lib/types";
 
 // ─── Layout constants ────────────────────────────────────────────────
@@ -65,6 +66,9 @@ const PLANETS: Planet[] = [
   { id: "society", cx: 1170, cy: 520, r: 290, color: "#C9543B" },
   { id: "discover", cx: 800, cy: 420, r: 330, color: "#E8B547" },
 ];
+
+// 메인페이지에 너무 많아보여서 몇몇 키워드는 좀 안보이게 해두는게 좋을 것 같음
+const HIDDEN_HUB_KEYWORDS = new Set(["과학·자연", "예술", "경제", "역사"]);
 
 // ─── Component ───────────────────────────────────────────────────────
 type Props = {
@@ -120,12 +124,9 @@ export function UniverseView({ mode = "explore", starOpacity = 0.75 }: Props) {
     return set;
   }, [selection, graph]);
 
-  // Viewbox: overview / explore / focused-on-selection
+  // Viewbox: overview / explore / focused-on-book.
+  // 키워드 선택은 zoom 하지 않는다 — 화면은 그대로 두고 매칭 별만 하이라이트.
   const targetVb = useMemo<ViewBox>(() => {
-    if (selection.kind === "keyword") {
-      const hub = graph.hubByKeyword[selection.keyword];
-      if (hub) return fitViewBox([hub, ...starsForHub(graph, hub.id)]);
-    }
     if (selection.kind === "book") {
       const star = graph.starById[selection.bookId];
       if (star) {
@@ -402,45 +403,115 @@ function HubLayer({
       }}
     >
       {hubs.map((h) => {
+        if (HIDDEN_HUB_KEYWORDS.has(h.keyword)) return null;
         const isActive = activeKeyword === h.keyword;
         const dim = hasSelection && !isActive;
+        const color = CATEGORY_COLORS[h.keyword as keyof typeof CATEGORY_COLORS] ?? "#8FB8FF";
         return (
-          <g
+          <HubChip
             key={h.id}
-            onClick={(e) => {
-              e.stopPropagation();
-              onPick(h.keyword);
-            }}
-            style={{ cursor: "pointer" }}
-          >
-            <circle
-              cx={h.x}
-              cy={h.y}
-              r={2}
-              fill="var(--ink-muted)"
-              opacity={dim ? 0.1 : 0.35}
-            />
-            {/* Larger invisible hit area for easier label clicking */}
-            <circle cx={h.x} cy={h.y} r={28} fill="transparent" />
-            <text
-              x={h.x + 12}
-              y={h.y + 4}
-              fill="var(--constellation)"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 13,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                opacity: dim ? 0.18 : isActive ? 0.95 : 0.55,
-                transition: "opacity 600ms var(--ease-cosmos)",
-                userSelect: "none",
-              }}
-            >
-              #{h.keyword}
-            </text>
-          </g>
+            x={h.x}
+            y={h.y}
+            keyword={h.keyword}
+            color={color}
+            isActive={isActive}
+            dim={dim}
+            onPick={onPick}
+          />
         );
       })}
+    </g>
+  );
+}
+
+function HubChip({
+  x,
+  y,
+  keyword,
+  color,
+  isActive,
+  dim,
+  onPick,
+}: {
+  x: number;
+  y: number;
+  keyword: string;
+  color: string;
+  isActive: boolean;
+  dim: boolean;
+  onPick: (keyword: string) => void;
+}) {
+  const [hover, setHover] = useState(false);
+  // Chip dimensions — Korean 2-char keyword + "#" + spacing, fixed for stability.
+  const chipW = 88;
+  const chipH = 32;
+
+  // Background fill / stroke states
+  const bgFill = isActive ? color : hover ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.025)";
+  const bgStroke = isActive ? color : hover ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.18)";
+  const textFill = isActive ? "#FFFFFF" : hover ? "#FFFFFF" : "var(--ink-secondary)";
+
+  const opacity = dim ? 0.25 : 1;
+
+  return (
+    <g
+      onClick={(e) => {
+        e.stopPropagation();
+        onPick(keyword);
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        cursor: "pointer",
+        opacity,
+        transition: "opacity 500ms var(--ease-cosmos)",
+      }}
+    >
+      {/* Active glow halo */}
+      {isActive && (
+        <circle
+          cx={x}
+          cy={y}
+          r={42}
+          fill={color}
+          opacity={0.15}
+          style={{ filter: "blur(8px)" }}
+        />
+      )}
+      {/* Chip body */}
+      <rect
+        x={x - chipW / 2}
+        y={y - chipH / 2}
+        width={chipW}
+        height={chipH}
+        rx={chipH / 2}
+        ry={chipH / 2}
+        fill={bgFill}
+        stroke={bgStroke}
+        strokeWidth={1}
+        style={{
+          transition:
+            "fill 300ms var(--ease-cosmos), stroke 300ms var(--ease-cosmos)",
+        }}
+      />
+      {/* Label */}
+      <text
+        x={x}
+        y={y + 4}
+        textAnchor="middle"
+        fill={textFill}
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 13,
+          letterSpacing: "0.14em",
+          fontWeight: isActive ? 600 : 400,
+          transition: "fill 300ms var(--ease-cosmos)",
+          userSelect: "none",
+          pointerEvents: "none",
+        }}
+      >
+        #{keyword}
+      </text>
     </g>
   );
 }
@@ -567,11 +638,6 @@ function fitViewBox(points: Array<{ x: number; y: number }>): ViewBox {
   const cx = (minX + maxX) / 2;
   const cy = (minY + maxY) / 2;
   return [cx - w / 2, cy - h / 2, w, h];
-}
-
-function starsForHub(graph: Graph, hubId: string) {
-  const ids = graph.hubStars[hubId] ?? [];
-  return ids.map((id) => graph.starById[id]).filter(Boolean);
 }
 
 /** Smoothly tween between viewbox targets (cubic ease-out, 800ms). */

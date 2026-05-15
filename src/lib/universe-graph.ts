@@ -175,11 +175,20 @@ export function buildUniverseGraph(books: Book[]): UniverseGraph {
   const hubByKeyword: Record<string, KeywordHub> = {};
   for (const h of hubs) hubByKeyword[h.keyword] = h;
 
+  // d3 forceLink mutates link.source / link.target into node references
+  // during the simulation, so we must extract `.id` to get back to strings.
+  const linkSourceId = (l: GraphLink): string =>
+    typeof l.source === "string" ? l.source : (l.source as GraphNode).id;
+  const linkTargetId = (l: GraphLink): string =>
+    typeof l.target === "string" ? l.target : (l.target as GraphNode).id;
+
   const starHubs: Record<string, string[]> = {};
   const hubStars: Record<string, string[]> = {};
   for (const l of links) {
-    (starHubs[l.source] ??= []).push(l.target);
-    (hubStars[l.target] ??= []).push(l.source);
+    const src = linkSourceId(l);
+    const tgt = linkTargetId(l);
+    (starHubs[src] ??= []).push(tgt);
+    (hubStars[tgt] ??= []).push(src);
   }
 
   // Open-tree dashed branches: pick up to 3 hubs (most populous) and add a
