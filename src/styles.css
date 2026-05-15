@@ -228,24 +228,24 @@
   0%, 100% { opacity: 0.55; }
   50% { opacity: 1; }
 }
-/* Star twinkle — gentle pulse with a brief peak. Smoother S-curves between
-   keyframe stops (CSS applies ease-in-out per segment) so the rise/fall
-   feels like a real star, not a strobe. Per-star delay + duration (set
-   inline) stagger the pulses so the field never breathes in sync. */
+/* Star twinkle — slow pulse with a visible peak. S-curves between keyframe
+   stops (CSS applies ease-in-out per segment) so the rise/fall feels like
+   a real star breathing. Per-star delay + duration (set inline) stagger
+   the pulses so the field never breathes in sync. */
 @keyframes star-shimmer {
-  0%, 60%, 100% {
+  0%, 55%, 100% {
     opacity: var(--star-base-op, 0.7);
     transform: scale(1);
   }
-  80% {
+  75% {
     opacity: 1;
-    transform: scale(1.35);
+    transform: scale(1.55);
   }
-  85% {
+  82% {
     opacity: 1;
-    transform: scale(1.35);
+    transform: scale(1.55);
   }
-  95% {
+  92% {
     opacity: var(--star-base-op, 0.7);
     transform: scale(1);
   }
