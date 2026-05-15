@@ -103,7 +103,7 @@ function Home() {
             </p>
 
             <div
-              className="mt-10"
+              className="mt-10 text-base"
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: 11,
@@ -112,7 +112,7 @@ function Home() {
                 textTransform: "uppercase",
               }}
             >
-              청소년 AI 독서 플랫폼 · 반짝북짝
+              청소년 AI 독서 관리 플랫폼 · 반짝북짝
             </div>
 
             <button
