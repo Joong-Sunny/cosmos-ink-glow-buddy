@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Search, Sparkle, BookOpen } from "lucide-react";
+import { Search, Sparkle } from "lucide-react";
 
 export function HomeHeader() {
   return (
