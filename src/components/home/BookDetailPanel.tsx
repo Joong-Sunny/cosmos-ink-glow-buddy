@@ -88,7 +88,7 @@ export function BookDetailPanel({ book, onClose }: Props) {
               className="mt-0.5 truncate"
               style={{
                 fontFamily: "var(--font-body)",
-                fontSize: 12,
+                fontSize: 13,
                 color: "var(--ink-secondary)",
               }}
             >
