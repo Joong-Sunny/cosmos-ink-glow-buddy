@@ -10,7 +10,7 @@ export const Route = createFileRoute("/search")({
   component: Page,
 });
 
-const CHIPS = ["사회·정의", "철학", "성장", "공감·다양성", "역사"];
+const CHIPS = ["권력", "철학", "성장", "사랑", "역사"];
 
 type ThoughtCard = {
   bookId: string;
@@ -109,7 +109,7 @@ function Page() {
     submit(kw);
   };
 
-  const isPowerSearch = submitted === "사회·정의";
+  const isPowerSearch = submitted === "권력";
 
   return (
     <main

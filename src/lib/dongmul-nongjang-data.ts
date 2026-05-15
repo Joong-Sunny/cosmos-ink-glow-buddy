@@ -57,7 +57,7 @@ type KeywordBundle = {
 
 /** The demo book. Hand-crafted to thread back into the seed universe. */
 const DONGMUL_NONGJANG: Record<string, KeywordBundle> = {
-  "사회·정의": {
+  "권력": {
     initial: {
       level: "L3",
       text: "권력은 어느 장면에서 처음 변하기 시작했어?",

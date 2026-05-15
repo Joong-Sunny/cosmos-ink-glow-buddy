@@ -10,7 +10,7 @@ function Page() {
   const { bookId } = Route.useParams();
   const book = useUniverseStore((s) => s.books.find((b) => b.id === bookId));
 
-  const targetKeyword = book?.keywords?.[0] ?? "사회·정의";
+  const targetKeyword = book?.keywords?.[0] ?? "권력";
 
   const goConstellation = () =>
     navigate({

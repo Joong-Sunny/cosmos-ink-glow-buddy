@@ -28,7 +28,7 @@ function Page() {
         booksCount: 6,
         starsCount: 12,
         issuedAt: new Date().toISOString(),
-        relatedKeyword: "사회·정의",
+        relatedKeyword: "권력",
         relatedBookIds: ["b01", "b1984", "bgiver", "b11", "b14", "b30"],
       });
     }
