@@ -41,15 +41,6 @@ export function HomeHeader() {
             생각 꺼내기
           </span>
         </Link>
-        <Link
-          to="/worldview"
-          className="flex h-10 items-center gap-2 rounded-full border border-[var(--ink-faint)] bg-[var(--bg-elevated)]/40 px-4 text-[var(--ink-secondary)] transition-colors hover:text-[var(--gold-soft)]"
-        >
-          <BookOpen size={15} />
-          <span className="text-[12px]" style={{ letterSpacing: "0.08em" }}>
-            도감
-          </span>
-        </Link>
         <button
           className="h-10 w-10 rounded-full border border-[var(--ink-faint)]"
           style={{
