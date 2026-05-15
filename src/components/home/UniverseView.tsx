@@ -81,12 +81,13 @@ export function UniverseView({ mode = "explore", starOpacity = 0.75 }: Props) {
   const selection = useUiStore((s) => s.selection);
   const selectStar = useUiStore((s) => s.selectStar);
   const selectKeyword = useUiStore((s) => s.selectKeyword);
+  const closeBookSheet = useUiStore((s) => s.closeBookSheet);
   const clearSelection = useUiStore((s) => s.clearSelection);
 
-  // Convenience derived flags
+  // Convenience derived flags — 키워드와 책 시트는 독립
   const activeKeyword = homeActiveKeyword({ selection });
   const focusedBookId = homeFocusedBookId({ selection });
-  const hasSelection = selection.kind !== "none";
+  const hasSelection = !!activeKeyword || !!focusedBookId;
 
   const graph = useMemo(() => buildUniverseGraph(books), [books]);
 
@@ -99,50 +100,49 @@ export function UniverseView({ mode = "explore", starOpacity = 0.75 }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [clearSelection]);
 
-  // Highlight sets — pure derivations from selection
-  const highlightedLinkSet = useMemo(() => {
-    const set = new Set<string>();
-    if (selection.kind === "book") {
-      for (const l of graph.links) {
-        if (l.source === selection.bookId) set.add(`${l.source}->${l.target}`);
-      }
-    } else if (selection.kind === "keyword") {
-      for (const l of graph.links) {
-        if (l.keyword === selection.keyword) set.add(`${l.source}->${l.target}`);
-      }
-    }
-    return set;
-  }, [selection, graph]);
-
+  // 키워드가 활성이면 그 키워드의 별들을 하이라이트. 아니면 포커스된 책만.
   const highlightedStarIds = useMemo(() => {
     const set = new Set<string>();
-    if (selection.kind === "book") set.add(selection.bookId);
-    else if (selection.kind === "keyword") {
-      const hub = graph.hubByKeyword[selection.keyword];
+    if (activeKeyword) {
+      const hub = graph.hubByKeyword[activeKeyword];
       if (hub) for (const id of graph.hubStars[hub.id] ?? []) set.add(id);
+    } else if (focusedBookId) {
+      set.add(focusedBookId);
     }
     return set;
-  }, [selection, graph]);
+  }, [activeKeyword, focusedBookId, graph]);
 
-  // Viewbox: overview / explore / focused-on-book.
-  // 키워드 선택은 zoom 하지 않는다 — 화면은 그대로 두고 매칭 별만 하이라이트.
-  const targetVb = useMemo<ViewBox>(() => {
-    if (selection.kind === "book") {
-      const star = graph.starById[selection.bookId];
-      if (star) {
-        // Zoom around the star plus the hubs it connects to
-        const points = [
-          star,
-          ...graph.links
-            .filter((l) => l.source === star.id)
-            .map((l) => graph.hubByKeyword[l.keyword])
-            .filter(Boolean),
-        ];
-        return fitViewBox(points);
+  // 책 선택 시 hub로 그려지는 방사 라인 — 키워드가 활성이면 별자리가 대신
+  // 시각적 역할을 하므로 사용하지 않는다.
+  const highlightedLinkSet = useMemo(() => {
+    const set = new Set<string>();
+    if (!activeKeyword && focusedBookId) {
+      for (const l of graph.links) {
+        if (l.source === focusedBookId) set.add(`${l.source}->${l.target}`);
       }
     }
-    return mode === "explore" ? EXPLORE_VB : FULL_VB;
-  }, [selection, graph, mode]);
+    return set;
+  }, [activeKeyword, focusedBookId, graph]);
+
+  // 키워드 선택 시: 활성 별들의 좌표 → MST 라인(별자리)
+  const constellationEdges = useMemo<Edge[]>(() => {
+    if (!activeKeyword) return [];
+    const pts = Array.from(highlightedStarIds)
+      .map((id) => graph.starById[id])
+      .filter(Boolean)
+      .map((s) => ({ id: s.id, x: s.x, y: s.y }));
+    return computeMST(pts);
+  }, [activeKeyword, highlightedStarIds, graph]);
+
+  const constellationColor = activeKeyword
+    ? CATEGORY_COLORS[activeKeyword as keyof typeof CATEGORY_COLORS] ?? "#FFFFFF"
+    : "#FFFFFF";
+
+  // Viewbox: 키워드/책 어떤 선택이든 zoom 하지 않는다. 화면은 항상 그대로.
+  const targetVb = useMemo<ViewBox>(
+    () => (mode === "explore" ? EXPLORE_VB : FULL_VB),
+    [mode],
+  );
 
   const vb = useAnimatedViewBox(targetVb);
 
@@ -188,12 +188,20 @@ export function UniverseView({ mode = "explore", starOpacity = 0.75 }: Props) {
           candidates={graph.candidates}
         />
 
-        {/* L2 — star ↔ hub links (only highlighted ones show) */}
+        {/* L2 — star ↔ hub radial links (book selection만; keyword 선택 시에는
+            constellation 라인이 대신 역할을 한다) */}
         <LinkLayer
           graph={graph}
           highlightedSet={highlightedLinkSet}
           hasSelection={hasSelection}
-          visible={linesVisible}
+          visible={linesVisible && !activeKeyword}
+        />
+
+        {/* L2.5 — constellation lines (MST between highlighted stars) */}
+        <ConstellationLayer
+          edges={constellationEdges}
+          color={constellationColor}
+          visible={!!activeKeyword}
         />
 
         {/* L3 — keyword hubs (clickable) */}
@@ -218,10 +226,8 @@ export function UniverseView({ mode = "explore", starOpacity = 0.75 }: Props) {
 
       <BookSheet
         book={focusedBook}
-        // ↓↓↓ THE FIX: sheet close = full deselect, so dim/highlight cannot
-        // linger after the sheet is gone (root-cause of the "screen stays
-        // dim" bug).
-        onClose={clearSelection}
+        // 시트 닫기는 책만 해제 — 키워드 별자리는 유지된다.
+        onClose={closeBookSheet}
         getBook={(id) => books.find((b) => b.id === id)}
       />
 
@@ -329,6 +335,79 @@ function CandidateLayer({
             </text>
           )}
         </g>
+      ))}
+    </g>
+  );
+}
+
+// ─── Constellation layer (MST between highlighted stars) ─────────────
+//
+// 별자리처럼 보이게 하려면 닫힌 곡선(cycle)이 없어야 하고, 가까운 별끼리
+// 연결되어야 한다. Minimum Spanning Tree가 정확히 그 조건을 만족시킨다:
+//   - N개 별 → 정확히 N-1개 엣지, cycle 0개 (트리)
+//   - 항상 가장 짧은 엣지부터 추가 → 자연스러운 가지 모양
+//   - O(N²) Prim's — 별 개수가 작아서 충분히 빠름
+
+type Pt = { id: string; x: number; y: number };
+type Edge = { from: Pt; to: Pt };
+
+function computeMST(pts: Pt[]): Edge[] {
+  if (pts.length < 2) return [];
+  const inTree = new Set<number>([0]);
+  const edges: Edge[] = [];
+  while (inTree.size < pts.length) {
+    let bestDist = Infinity;
+    let bestFrom = -1;
+    let bestTo = -1;
+    for (const i of inTree) {
+      for (let j = 0; j < pts.length; j++) {
+        if (inTree.has(j)) continue;
+        const dx = pts[i].x - pts[j].x;
+        const dy = pts[i].y - pts[j].y;
+        const d = dx * dx + dy * dy;
+        if (d < bestDist) {
+          bestDist = d;
+          bestFrom = i;
+          bestTo = j;
+        }
+      }
+    }
+    if (bestTo < 0) break;
+    inTree.add(bestTo);
+    edges.push({ from: pts[bestFrom], to: pts[bestTo] });
+  }
+  return edges;
+}
+
+function ConstellationLayer({
+  edges,
+  color,
+  visible,
+}: {
+  edges: Edge[];
+  color: string;
+  visible: boolean;
+}) {
+  return (
+    <g
+      style={{
+        opacity: visible ? 1 : 0,
+        transition: "opacity 700ms var(--ease-cosmos)",
+        pointerEvents: "none",
+      }}
+    >
+      {edges.map((e, i) => (
+        <line
+          key={i}
+          x1={e.from.x}
+          y1={e.from.y}
+          x2={e.to.x}
+          y2={e.to.y}
+          stroke={color}
+          strokeWidth={1.1}
+          strokeOpacity={0.55}
+          strokeLinecap="round"
+        />
       ))}
     </g>
   );

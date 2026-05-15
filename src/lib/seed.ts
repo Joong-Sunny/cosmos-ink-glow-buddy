@@ -61,7 +61,6 @@ const SEED_SPECS: SeedSpec[] = [
   { id: "b15", title: "창가의 토토" },
   { id: "b16", title: "삼국유사" },
   { id: "b17", title: "종의 기원 (어린이용)" },
-  { id: "b18", title: "목민심서 (어린이용)" },
   { id: "b19", title: "열하일기 (어린이용)" },
   { id: "b20", title: "톨스토이 단편선" },
   { id: "b21", title: "이상한 나라의 앨리스" },

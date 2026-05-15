@@ -9,28 +9,19 @@ import { create } from "zustand";
  *
  * Selection model
  * ---------------
- * The home universe view has exactly one selection at a time:
- *
- *   { kind: "none" }                  // overview — nothing highlighted
- *   { kind: "keyword"; keyword }      // a keyword hub is focused
- *   { kind: "book"; bookId }          // a star is focused (sheet open)
- *
- * Using a discriminated union (rather than three independent booleans)
- * means transitions cannot desync. Every action that should "deselect"
- * — closing the sheet, clicking empty space, pressing Escape, opening a
- * different hub — funnels through one of three actions below, and the
- * derived visual state (dim other stars, BookSheet open, zoomed viewbox)
- * always agrees.
+ * 키워드(별자리)와 책 시트는 독립적이다 — 키워드 선택 중에 별을 클릭해도
+ * 별자리 라인은 그대로 두고 BookSheet만 열린다. 별 시트를 닫아도 키워드
+ * 활성 상태는 유지된다. 빈 공간 클릭 / ESC만 모든 선택을 한 번에 해제한다.
  */
-export type HomeSelection =
-  | { kind: "none" }
-  | { kind: "keyword"; keyword: string }
-  | { kind: "book"; bookId: string };
+export type HomeSelection = {
+  activeKeyword: string | null;
+  focusedBookId: string | null;
+};
 
 type UiState = {
   /** "intro" copy stage vs "explore" universe stage on the home page */
   homeMode: "intro" | "explore";
-  /** Universe selection — see HomeSelection above */
+  /** Universe selection — keyword + book are independent */
   selection: HomeSelection;
   /** Is the "add a new star" popup open? */
   registerOpen: boolean;
@@ -40,6 +31,9 @@ type UiActions = {
   setHomeMode: (m: "intro" | "explore") => void;
   selectKeyword: (keyword: string) => void;
   selectStar: (bookId: string) => void;
+  /** Close just the BookSheet — keeps keyword constellation visible */
+  closeBookSheet: () => void;
+  /** Clear ALL selection (keyword + book) — bg click / ESC */
   clearSelection: () => void;
   openRegister: () => void;
   closeRegister: () => void;
@@ -47,34 +41,43 @@ type UiActions = {
 
 export const useUiStore = create<UiState & UiActions>((set) => ({
   homeMode: "intro",
-  selection: { kind: "none" },
+  selection: { activeKeyword: null, focusedBookId: null },
   registerOpen: false,
 
   setHomeMode: (m) => set({ homeMode: m }),
 
-  // Selecting a keyword replaces any prior selection (mutual exclusion)
+  // Toggle the keyword (off if same, on otherwise). 책 시트는 건드리지 않는다.
   selectKeyword: (keyword) =>
-    set((s) => {
-      // Toggle off if clicking the already-active keyword
-      if (s.selection.kind === "keyword" && s.selection.keyword === keyword) {
-        return { selection: { kind: "none" } };
-      }
-      return { selection: { kind: "keyword", keyword } };
-    }),
+    set((s) => ({
+      selection: {
+        ...s.selection,
+        activeKeyword:
+          s.selection.activeKeyword === keyword ? null : keyword,
+      },
+    })),
 
-  // Selecting a star replaces any prior selection
-  selectStar: (bookId) => set({ selection: { kind: "book", bookId } }),
+  // 책 시트 열기. 키워드 활성 상태는 그대로 둔다.
+  selectStar: (bookId) =>
+    set((s) => ({
+      selection: { ...s.selection, focusedBookId: bookId },
+    })),
 
-  // Single "return to overview" action — used by sheet-close, bg-click, ESC
-  clearSelection: () => set({ selection: { kind: "none" } }),
+  closeBookSheet: () =>
+    set((s) => ({
+      selection: { ...s.selection, focusedBookId: null },
+    })),
+
+  // 전부 해제 — bg 클릭, ESC가 호출
+  clearSelection: () =>
+    set({ selection: { activeKeyword: null, focusedBookId: null } }),
 
   openRegister: () => set({ registerOpen: true }),
   closeRegister: () => set({ registerOpen: false }),
 }));
 
-/** Convenience selectors so consumers don't need to switch on kind. */
+/** Convenience selectors so consumers don't need to peek at the union shape. */
 export const homeActiveKeyword = (s: { selection: HomeSelection }): string | null =>
-  s.selection.kind === "keyword" ? s.selection.keyword : null;
+  s.selection.activeKeyword;
 
 export const homeFocusedBookId = (s: { selection: HomeSelection }): string | null =>
-  s.selection.kind === "book" ? s.selection.bookId : null;
+  s.selection.focusedBookId;
