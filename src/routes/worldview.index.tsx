@@ -4,7 +4,6 @@ import { useUniverseStore } from "@/lib/store";
 import { ArcanumCard, type ArcanumCardProps } from "@/components/worldview/ArcanumCard";
 import type { WorldviewCard } from "@/lib/types";
 import { FloatingPanel } from "@/components/layout/FloatingPanel";
-import { useSmartBack } from "@/hooks/use-smart-back";
 
 export const Route = createFileRoute("/worldview/")({
   component: Page,
@@ -36,7 +35,6 @@ function toCardProps(c: WorldviewCard): ArcanumCardProps {
 function Page() {
   const cards = useUniverseStore((s) => s.worldviewCards);
   const navigate = useNavigate();
-  const goBack = useSmartBack("/");
 
   // Newest on top
   const ordered = [...cards].sort(
@@ -45,9 +43,8 @@ function Page() {
 
   return (
     <main className="relative flex min-h-screen w-full items-start justify-center px-6 py-12">
-      <button
-        type="button"
-        onClick={goBack}
+      <Link
+        to="/"
         aria-label="홈으로"
         className="fixed left-8 top-8 z-20 flex h-10 items-center gap-2 rounded-full border border-[var(--ink-faint)] bg-[var(--bg-elevated)]/40 px-4 text-[var(--ink-secondary)] backdrop-blur-md transition-colors hover:text-[var(--star-active)]"
       >
@@ -55,7 +52,7 @@ function Page() {
         <span className="text-[12px]" style={{ letterSpacing: "0.08em" }}>
           홈으로
         </span>
-      </button>
+      </Link>
       <Link
         to="/search"
         className="fixed right-8 top-8 z-20 flex h-10 items-center gap-2 rounded-full border border-[var(--ink-faint)] bg-[var(--bg-elevated)]/40 px-4 text-[var(--ink-secondary)] backdrop-blur-md transition-colors hover:text-[var(--star-active)]"
