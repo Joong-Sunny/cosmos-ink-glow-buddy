@@ -25,7 +25,7 @@ export function HomeHeader() {
           <div className="font-display text-[18px] tracking-tight text-[var(--ink-primary)]">
             반짝북짝
           </div>
-          <div className="font-display-italic mt-1 text-[11px] tracking-wide text-[var(--gold-deep)]">
+          <div className="font-display-italic mt-1 text-[12px] tracking-wide text-[var(--gold-soft)] opacity-85">
             The Book Universe
           </div>
         </div>

@@ -248,9 +248,9 @@ function Page() {
                         <div
                           style={{
                             fontFamily: "var(--font-mono)",
-                            fontSize: 8,
+                            fontSize: 11,
                             letterSpacing: "0.2em",
-                            color: "var(--gold-deep)",
+                            color: "var(--gold-soft)",
                           }}
                         >
                           ARCANUM · {matchingCard.romanNumeral}
@@ -373,9 +373,9 @@ function Page() {
                       <div
                         style={{
                           fontFamily: "var(--font-mono)",
-                          fontSize: 9,
+                          fontSize: 11,
                           letterSpacing: "0.15em",
-                          color: "var(--gold-deep)",
+                          color: "var(--gold-soft)",
                         }}
                       >
                         {t.bookTitle} · {t.date}
